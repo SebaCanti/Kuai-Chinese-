@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -254,7 +254,7 @@
 
       <section class="result-block">
         <h3>&gt; EXAMPLE SENTENCES</h3>
-        <p class="settings-desc">Vocabulary level for new example sentences (the ↻ button on a flash card). Starts at HSK 3–4.</p>
+        <p class="settings-desc">Level of the example sentences on flash cards (the ↻ button picks another one). Starts at HSK 3–4.</p>
         <div class="hsk-grid" role="group" aria-label="HSK level">
           <button class="hsk-opt" data-hsk="4" aria-pressed="true">HSK 3–4</button>
           <button class="hsk-opt" data-hsk="5" aria-pressed="false">Up to HSK 5</button>
@@ -269,8 +269,8 @@
     </main>
   </div>
 
-  <script src="hsk.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="sentences.js?v=8"></script>
+  <script src="app.js?v=8"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
