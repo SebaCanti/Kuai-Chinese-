@@ -542,10 +542,19 @@
     $('#quiz-learning').disabled = quizMode === 'word' && item.status === 'learning';
   }
 
+  // Older fallback examples marked the word with brackets; show them without.
+  function cleanExample(item) {
+    return {
+      example: (item.example || '').replace(/「([^」]*)」/g, '$1'),
+      exampleEn: (item.exampleEn || '').replace(/[“”]/g, '')
+    };
+  }
+
   function fillExample(item) {
-    $('#quiz-example').textContent = item.example || '…';
-    $('#quiz-example-pinyin').textContent = item.example ? sentencePinyin(item.example) : '';
-    $('#quiz-example-en').textContent = item.exampleEn || '';
+    const { example, exampleEn } = cleanExample(item);
+    $('#quiz-example').textContent = example || '…';
+    $('#quiz-example-pinyin').textContent = example ? sentencePinyin(example) : '';
+    $('#quiz-example-en').textContent = exampleEn;
   }
 
   function sentencePinyin(text) {
@@ -554,29 +563,61 @@
     try { return lib.pinyin(text, { toneType: 'symbol' }); } catch { return ''; }
   }
 
-  // Words saved without a phrase get a short example made from their meaning.
-  // We translate a few simple English sentences and keep the first one that uses the word;
-  // if none does, we fall back to a sentence that always fits: "Today I learned the word 「X」."
-  async function makeExample(item) {
-    const m = (item.en || '').replace(/[.!?]+$/, '').trim();
-    const mm = m.replace(/^to /i, '');
-    const templates = m ? [
-      `I like ${m}.`,
-      `I want to ${mm} today.`,
-      `This is very ${mm}.`,
-      `The ${mm} is here.`
-    ] : [];
-    for (const en of templates) {
-      const zh = await translateText(en, 'zh-CN');
-      if (zh && zh.includes(item.char)) return { example: zh, exampleEn: en };
+  // ---------- Example sentences ----------
+  // Without a saved phrase (or when you tap ↻), we write a short sentence: an English sentence
+  // that mixes the word's meaning with a random HSK noun at your level, translated to Chinese.
+  // We keep the first translation that really contains the word; if none does, we fall back to
+  // a sentence that always fits: "Today I learned the word X."
+  const HSK_KEY = 'kuai_hsk_max';
+  function getHskMax() {
+    const n = parseInt(localStorage.getItem(HSK_KEY), 10);
+    return [4, 5, 6].includes(n) ? n : 4;
+  }
+  function hskPool() {
+    const lists = window.KUAI_HSK || {};
+    let pool = [];
+    for (let lvl = 3; lvl <= getHskMax(); lvl++) pool = pool.concat(lists[lvl] || []);
+    return pool.length ? pool : [['friend', '朋友']];
+  }
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
-    return { example: `我今天学了「${item.char}」这个词。`, exampleEn: `Today I learned the word “${item.char}”.` };
+    return a;
   }
 
-  async function ensureExample(item) {
-    if (item.example) return;
-    $('#quiz-example').textContent = 'Writing an example…';
-    const ex = await makeExample(item);
+  function exampleTemplates(meaning) {
+    const m = meaning.replace(/[.!?]+$/, '').trim();
+    const v = m.replace(/^to /i, '');
+    const n = () => pick(hskPool())[0];
+    return shuffle([
+      `I saw ${m} near the ${n()}.`,
+      `My ${n()} really likes ${m}.`,
+      `We talked about ${m} at the ${n()}.`,
+      `I want to ${v} after visiting the ${n()}.`,
+      `Yesterday my ${n()} wanted to ${v}.`,
+      `The ${n()} is very ${v} today.`,
+      `Do you need ${m} for the ${n()}?`,
+      `I forgot ${m} at the ${n()}.`,
+      `There is ${m} in the ${n()}.`
+    ]);
+  }
+
+  async function makeExample(item, avoid) {
+    const m = (item.en || '').trim();
+    if (m) {
+      for (const en of exampleTemplates(m).slice(0, 6)) {
+        const zh = await translateText(en, 'zh-CN');
+        if (zh && zh.includes(item.char) && zh !== avoid) return { example: zh, exampleEn: en };
+      }
+    }
+    return { example: `我今天学了${item.char}这个词。`, exampleEn: `Today I learned the word ${item.char}.` };
+  }
+
+  function storeExample(item, ex) {
     const dict = getDict();
     const stored = dict.find(d => d.id === item.id);
     if (stored) {
@@ -585,6 +626,25 @@
     }
     Object.assign(item, ex);
     if (quizItem && quizItem.id === item.id) fillExample(item);
+  }
+
+  // ↻ swaps the example for a new random one
+  async function refreshExample() {
+    if (!quizItem) return;
+    const btn = $('#quiz-refresh');
+    if (btn.classList.contains('spinning')) return;
+    btn.classList.add('spinning');
+    try {
+      storeExample(quizItem, await makeExample(quizItem, quizItem.example));
+    } finally {
+      btn.classList.remove('spinning');
+    }
+  }
+
+  async function ensureExample(item) {
+    if (item.example) return;
+    $('#quiz-example').textContent = 'Writing an example…';
+    storeExample(item, await makeExample(item));
   }
 
   function openWordCard(item) {
@@ -638,6 +698,18 @@
     $('#quiz-flip').textContent = back.classList.contains('hidden') ? 'Flip card' : 'Hide';
   });
   $('#quiz-next').addEventListener('click', nextQuizCard);
+  $('#quiz-refresh').addEventListener('click', refreshExample);
+
+  // HSK level for generated examples (Settings)
+  function renderHskSetting() {
+    document.querySelectorAll('.hsk-opt').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.hsk) === getHskMax())));
+  }
+  document.querySelectorAll('.hsk-opt').forEach(b => b.addEventListener('click', () => {
+    try { localStorage.setItem(HSK_KEY, b.dataset.hsk); } catch {}
+    renderHskSetting();
+    showToast(`Examples up to HSK ${b.dataset.hsk}`);
+  }));
+  renderHskSetting();
   $('#quiz-known').addEventListener('click', () => {
     if (!quizItem) return;
     setStatus(quizItem.id, 'known');

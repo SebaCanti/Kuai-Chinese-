@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=7" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -192,7 +192,10 @@
           <div id="quiz-pinyin" class="quiz-pinyin"></div>
           <div id="quiz-meaning" class="quiz-meaning"></div>
           <div class="quiz-example-label">EXAMPLE</div>
-          <div id="quiz-example" class="quiz-example"></div>
+          <div class="quiz-example-row">
+            <div id="quiz-example" class="quiz-example"></div>
+            <button id="quiz-refresh" class="refresh-btn" title="New example" aria-label="Show a new example">↻</button>
+          </div>
           <div id="quiz-example-pinyin" class="quiz-example-pinyin"></div>
           <div id="quiz-example-en" class="quiz-example-en"></div>
         </div>
@@ -250,13 +253,24 @@
       </section>
 
       <section class="result-block">
+        <h3>&gt; EXAMPLE SENTENCES</h3>
+        <p class="settings-desc">Vocabulary level for new example sentences (the ↻ button on a flash card). Starts at HSK 3–4.</p>
+        <div class="hsk-grid" role="group" aria-label="HSK level">
+          <button class="hsk-opt" data-hsk="4" aria-pressed="true">HSK 3–4</button>
+          <button class="hsk-opt" data-hsk="5" aria-pressed="false">Up to HSK 5</button>
+          <button class="hsk-opt" data-hsk="6" aria-pressed="false">Up to HSK 6</button>
+        </div>
+      </section>
+
+      <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.3 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.4 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="hsk.js?v=7"></script>
+  <script src="app.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
