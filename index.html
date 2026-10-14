@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#e63946" />
+  <meta name="description" content="Kuai Chinese - Aprende chino rápido: pega texto, obtén Pinyin, traducciones y estudia con tu diccionario personal." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Kuai Chinese</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- pinyin-pro CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>快 Kuai Chinese</h1>
+      <nav class="nav-tabs">
+        <button class="tab active" data-tab="translate">Traducir</button>
+        <button class="tab" data-tab="history">Historial</button>
+        <button class="tab" data-tab="dictionary">Diccionario</button>
+      </nav>
+    </header>
+
+    <!-- Translate Tab -->
+    <main id="tab-translate" class="tab-content active">
+      <div id="paste-zone" class="paste-zone">
+        <div class="paste-icon">📋</div>
+        <p class="paste-hint">Mantén presionado para pegar del portapapeles</p>
+        <p class="paste-sub">o toca para editar / pegar manualmente</p>
+        <textarea id="input-text" placeholder="Pega o escribe aquí el texto en chino, inglés o español..." rows="3"></textarea>
+        <button id="btn-translate" class="btn primary">Traducir ahora</button>
+      </div>
+
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Traduciendo...</p>
+      </div>
+
+      <div id="results" class="results hidden">
+        <!-- Original -->
+        <section class="result-block">
+          <h3>Original</h3>
+          <div id="original-text" class="text-box"></div>
+        </section>
+
+        <!-- Full translation -->
+        <section class="result-block">
+          <h3 id="full-title">Traducción completa</h3>
+          <div id="full-pinyin" class="text-box pinyin"></div>
+          <div id="full-english" class="text-box"></div>
+          <div id="full-spanish" class="text-box hidden"></div>
+          <button id="btn-show-spanish" class="btn secondary small">Mostrar en español</button>
+        </section>
+
+        <!-- Word by word -->
+        <section class="result-block">
+          <h3>Palabra por palabra</h3>
+          <div class="word-table-wrapper">
+            <table id="word-table" class="word-table">
+              <thead>
+                <tr>
+                  <th>Carácter / Palabra</th>
+                  <th>Pinyin</th>
+                  <th id="th-meaning">Inglés</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="word-tbody"></tbody>
+            </table>
+          </div>
+          <div class="actions-row">
+            <button id="btn-toggle-lang" class="btn secondary small">Cambiar a español</button>
+            <button id="btn-save-all" class="btn primary small">Guardar todas en diccionario</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- History Tab -->
+    <main id="tab-history" class="tab-content">
+      <div class="section-header">
+        <h2>Historial</h2>
+        <button id="btn-clear-history" class="btn danger small">Borrar todo</button>
+      </div>
+      <div id="history-list" class="list-container">
+        <p class="empty-state">Aún no hay frases en el historial.</p>
+      </div>
+    </main>
+
+    <!-- Dictionary Tab -->
+    <main id="tab-dictionary" class="tab-content">
+      <div class="section-header">
+        <h2>Mi diccionario</h2>
+        <button id="btn-clear-dict" class="btn danger small">Borrar todo</button>
+      </div>
+      <div id="dict-list" class="list-container">
+        <p class="empty-state">Aún no has guardado palabras.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
+</body>
+</html>

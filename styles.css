@@ -1,0 +1,470 @@
+/* ===== Kuai Chinese - Mobile First PWA ===== */
+:root {
+  --primary: #e63946;
+  --primary-dark: #c1121f;
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text: #1d3557;
+  --text-light: #457b9d;
+  --border: #e9ecef;
+  --success: #2a9d8f;
+  --danger: #e63946;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --radius: 16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+
+#app {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+
+/* Header */
+.header {
+  background: var(--primary);
+  color: white;
+  padding: 16px 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(230, 57, 70, 0.3);
+}
+
+.header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.75);
+  padding: 12px 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: var(--bg);
+  color: var(--primary);
+}
+
+/* Tabs content */
+.tab-content {
+  display: none;
+  flex: 1;
+  padding: 16px;
+  animation: fadeIn 0.25s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Paste Zone */
+.paste-zone {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 2px dashed var(--border);
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.paste-zone.holding {
+  border-color: var(--primary);
+  background: #fff5f5;
+  transform: scale(0.98);
+}
+
+.paste-icon {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+}
+
+.paste-hint {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.paste-sub {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 16px;
+}
+
+#input-text {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 1.05rem;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 12px;
+  font-family: inherit;
+  background: #fafafa;
+}
+
+#input-text:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  width: 100%;
+}
+
+.btn.primary:hover, .btn.primary:focus {
+  background: var(--primary-dark);
+}
+
+.btn.secondary {
+  background: #edf2f7;
+  color: var(--text);
+}
+
+.btn.secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn.danger {
+  background: #fff5f5;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+}
+
+.btn.small {
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  width: auto;
+}
+
+.btn.icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: #edf2f7;
+  font-size: 1.1rem;
+}
+
+.btn.icon-btn.saved {
+  background: #d1fae5;
+  color: var(--success);
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading.hidden, .results.hidden, .hidden {
+  display: none !important;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results */
+.results {
+  margin-top: 20px;
+}
+
+.result-block {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.result-block h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.text-box {
+  font-size: 1.15rem;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.text-box.pinyin {
+  font-size: 1.05rem;
+  color: var(--primary);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Word table */
+.word-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 12px;
+}
+
+.word-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.word-table th {
+  text-align: left;
+  padding: 8px 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-light);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.word-table td {
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.word-table tr:last-child td {
+  border-bottom: none;
+}
+
+.word-char {
+  font-size: 1.35rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.word-pinyin {
+  color: var(--primary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.word-meaning {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* History & Dictionary lists */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+}
+
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-light);
+  padding: 40px 20px;
+  font-size: 0.95rem;
+}
+
+.card-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-item .original {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.card-item .meta {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.card-item .pinyin-line {
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+
+.card-item .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.dict-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dict-item .char {
+  font-size: 1.6rem;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: center;
+}
+
+.dict-item .info {
+  flex: 1;
+}
+
+.dict-item .pinyin {
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+
+.dict-item .meaning {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.dict-item .remove-btn {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: calc(24px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1d3557;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  max-width: 90%;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Desktop refinements */
+@media (min-width: 640px) {
+  #app {
+    padding: 0 0 40px;
+  }
+  .header {
+    border-radius: 0 0 20px 20px;
+  }
+  .paste-zone {
+    padding: 32px 24px;
+  }
+}
