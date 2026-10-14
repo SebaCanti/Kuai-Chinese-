@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="neon-tokyo">
+<html lang="es" data-theme="matrix-soft">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0a12" />
+  <meta name="theme-color" content="#05080a" />
   <meta name="description" content="Kuai Chinese - Aprende chino rápido: pega texto, obtén Pinyin, traducciones y estudia con tu diccionario personal." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>Kuai Chinese</title>
+  <title>Kuai Chinese 快中文</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
@@ -18,7 +18,15 @@
   <div id="app">
     <!-- Header -->
     <header class="header">
-      <h1>快 Kuai Chinese</h1>
+      <div class="header-top">
+        <h1 class="logo">
+          <span class="logo-en">KUAI CHINESE</span>
+          <span class="logo-zh">快中文</span>
+        </h1>
+        <div class="header-right">
+          <span id="clock" class="clock">--:--</span>
+        </div>
+      </div>
       <nav class="nav-tabs">
         <button class="tab active" data-tab="translate">Traducir</button>
         <button class="tab" data-tab="history">Historial</button>
@@ -30,11 +38,45 @@
     <!-- Translate Tab -->
     <main id="tab-translate" class="tab-content active">
       <div id="paste-zone" class="paste-zone">
-        <div class="paste-icon">📋</div>
-        <p class="paste-hint">Mantén presionado para pegar del portapapeles</p>
+        <!-- Animated nerd character -->
+        <div class="nerd-scene" aria-hidden="true">
+          <div class="nerd-boy">
+            <div class="nerd-head">
+              <div class="nerd-hair"></div>
+              <div class="nerd-face">
+                <div class="nerd-glasses">
+                  <span class="lens"></span>
+                  <span class="lens"></span>
+                </div>
+                <div class="nerd-eyes">
+                  <span class="eye"></span>
+                  <span class="eye"></span>
+                </div>
+              </div>
+            </div>
+            <div class="nerd-body">
+              <div class="nerd-arm left"></div>
+              <div class="nerd-torso"></div>
+              <div class="nerd-arm right typing-arm"></div>
+            </div>
+          </div>
+          <div class="nerd-desk">
+            <div class="monitor">
+              <div class="screen">
+                <div class="screen-lines"></div>
+                <div class="cursor-blink">_</div>
+              </div>
+            </div>
+            <div class="keyboard">
+              <div class="keys"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="paste-hint">MANTÉN PRESIONADO PARA PEGAR</p>
         <p class="paste-sub">o toca para editar / pegar manualmente</p>
         <textarea id="input-text" placeholder="Pega o escribe aquí el texto en chino, inglés o español..." rows="3"></textarea>
-        <button id="btn-translate" class="btn primary">Traducir ahora</button>
+        <button id="btn-translate" class="btn primary">TRADUCIR AHORA</button>
       </div>
 
       <div id="loading" class="loading hidden">
@@ -44,27 +86,27 @@
 
       <div id="results" class="results hidden">
         <section class="result-block">
-          <h3>Original</h3>
-          <div id="original-text" class="text-box"></div>
+          <h3>ORIGINAL</h3>
+          <div id="original-text" class="text-box clear-text"></div>
         </section>
 
         <section class="result-block">
-          <h3 id="full-title">Traducción completa</h3>
+          <h3 id="full-title">TRADUCCIÓN COMPLETA</h3>
           <div id="full-pinyin" class="text-box pinyin"></div>
-          <div id="full-english" class="text-box"></div>
-          <div id="full-spanish" class="text-box hidden"></div>
+          <div id="full-english" class="text-box clear-text"></div>
+          <div id="full-spanish" class="text-box clear-text hidden"></div>
           <button id="btn-show-spanish" class="btn secondary small">Mostrar en español</button>
         </section>
 
         <section class="result-block">
-          <h3>Palabra por palabra</h3>
+          <h3>PALABRA POR PALABRA</h3>
           <div class="word-table-wrapper">
             <table id="word-table" class="word-table">
               <thead>
                 <tr>
-                  <th>Carácter / Palabra</th>
-                  <th>Pinyin</th>
-                  <th id="th-meaning">Inglés</th>
+                  <th>CARÁCTER</th>
+                  <th>PINYIN</th>
+                  <th id="th-meaning">INGLÉS</th>
                   <th></th>
                 </tr>
               </thead>
@@ -73,7 +115,7 @@
           </div>
           <div class="actions-row">
             <button id="btn-toggle-lang" class="btn secondary small">Cambiar a español</button>
-            <button id="btn-save-all" class="btn primary small">Guardar todas en diccionario</button>
+            <button id="btn-save-all" class="btn primary small">Guardar todas</button>
           </div>
         </section>
       </div>
@@ -82,7 +124,7 @@
     <!-- History Tab -->
     <main id="tab-history" class="tab-content">
       <div class="section-header">
-        <h2>Historial</h2>
+        <h2>HISTORIAL</h2>
         <button id="btn-clear-history" class="btn danger small">Borrar todo</button>
       </div>
       <div id="history-list" class="list-container">
@@ -93,7 +135,7 @@
     <!-- Dictionary Tab -->
     <main id="tab-dictionary" class="tab-content">
       <div class="section-header">
-        <h2>Mi diccionario</h2>
+        <h2>MI DICCIONARIO</h2>
         <button id="btn-clear-dict" class="btn danger small">Borrar todo</button>
       </div>
       <div id="dict-list" class="list-container">
@@ -104,19 +146,19 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>Ajustes</h2>
+        <h2>AJUSTES</h2>
       </div>
 
       <section class="result-block">
-        <h3>Tema visual</h3>
-        <p class="settings-desc">Elige el estilo cyberpunk de la app. Se guarda automáticamente.</p>
+        <h3>TEMA VISUAL</h3>
+        <p class="settings-desc">Elige el estilo cyberpunk. Se guarda automáticamente.</p>
         <div class="theme-grid" id="theme-grid">
           <button class="theme-card" data-theme="neon-tokyo">
             <div class="theme-preview neon-tokyo-preview"></div>
             <span class="theme-name">Neon Tokyo</span>
             <span class="theme-desc">Rosa + cian neón</span>
           </button>
-          <button class="theme-card" data-theme="matrix-soft">
+          <button class="theme-card active" data-theme="matrix-soft">
             <div class="theme-preview matrix-soft-preview"></div>
             <span class="theme-name">Matrix Soft</span>
             <span class="theme-desc">Verde digital</span>
@@ -140,8 +182,8 @@
       </section>
 
       <section class="result-block">
-        <h3>Acerca de</h3>
-        <p class="settings-desc">Kuai Chinese v1.0 — Aprende chino rápido con Pinyin, traducciones y diccionario personal.</p>
+        <h3>ACERCA DE</h3>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.1 — Aprende chino rápido con Pinyin, traducciones y diccionario personal.</p>
       </section>
     </main>
   </div>

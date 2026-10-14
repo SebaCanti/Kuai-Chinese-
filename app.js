@@ -10,21 +10,21 @@
 
   // ---------- Themes ----------
   const THEME_KEY = 'kuai_theme';
-  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
+  const THEMES = ['matrix-soft', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
 
   function getSavedTheme() {
     const t = localStorage.getItem(THEME_KEY);
-    return THEMES.includes(t) ? t : 'neon-tokyo';
+    return THEMES.includes(t) ? t : 'matrix-soft';
   }
 
   function applyTheme(theme) {
-    if (!THEMES.includes(theme)) theme = 'neon-tokyo';
+    if (!THEMES.includes(theme)) theme = 'matrix-soft';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     // Update theme-color meta for mobile status bar
     const meta = document.querySelector('meta[name="theme-color"]');
     const colors = {
-      'neon-tokyo': '#0a0a12',
+      'matrix-soft': '#0a0a12',
       'matrix-soft': '#05080a',
       'synthwave': '#1a0a2e',
       'chrome-crimson': '#0e1015',
@@ -534,6 +534,17 @@
       showToast('Diccionario borrado');
     }
   });
+
+
+  // ---------- Clock ----------
+  function updateClock() {
+    const el = document.getElementById('clock');
+    if (!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
 
   // Theme cards
   document.querySelectorAll('.theme-card').forEach(card => {
