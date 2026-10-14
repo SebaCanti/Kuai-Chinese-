@@ -80,7 +80,20 @@
     let items;
     try { items = JSON.parse(localStorage.getItem(STORAGE_DICT) || '[]'); }
     catch { items = []; }
-    return items.map(d => ({ status: 'new', example: '', exampleEn: '', ...d }));
+    return items.map(d => {
+      const w = { status: 'new', ...d };
+      // Example sentences are only ones you added: the phrase you saved the word from, or
+      // sentences you add on its card. Older versions stored one example (sometimes made up by
+      // the app); keep it only if it was your phrase.
+      if (!Array.isArray(w.sentences)) {
+        const own = w.phrase || w.example || '';
+        const ownEn = w.phrase ? (w.phraseEn || '') : (w.exampleEn || '');
+        const madeUp = /^我今天学了「.*」这个词。$/.test(own) ||
+          /^(I like .+|I want to .+ today|This is very .+|The .+ is here)\.$/.test(ownEn);
+        w.sentences = own && !madeUp ? [{ zh: own, en: ownEn }] : [];
+      }
+      return w;
+    });
   }
   function saveDict(items) {
     localStorage.setItem(STORAGE_DICT, JSON.stringify(items));
@@ -109,8 +122,15 @@
 
   function addToDict(word) {
     const dict = getDict();
-    if (dict.some(d => d.char === word.char)) {
-      showToast('Already in your dictionary');
+    const existing = dict.find(d => d.char === word.char);
+    if (existing) {
+      if (word.example && !existing.sentences.some(x => x.zh === word.example)) {
+        existing.sentences.push({ zh: word.example, en: word.exampleEn || '' });
+        saveDict(dict);
+        showToast('Added this phrase to its examples');
+      } else {
+        showToast('Already in your dictionary');
+      }
       return false;
     }
     dict.unshift({
@@ -120,8 +140,7 @@
       en: word.en,
       es: word.es || '',
       status: 'new',
-      example: word.example || '',
-      exampleEn: word.exampleEn || '',
+      sentences: word.example ? [{ zh: word.example, en: word.exampleEn || '' }] : [],
       date: new Date().toISOString()
     });
     saveDict(dict);
@@ -281,10 +300,38 @@
   }
 
   // ---------- Render results ----------
+  // ---------- Dictionary colors in translations ----------
+  // Words already in your dictionary are colored: green = memorized, red = not memorized.
+  function dictStatusMap() {
+    const map = {};
+    getDict().forEach(d => { if (d.status === 'known' || d.status === 'learning') map[d.char] = d.status; });
+    return map;
+  }
+
+  // Escapes the text and wraps dictionary words, matching the longest word first.
+  function highlightHtml(text, map = dictStatusMap()) {
+    const words = Object.keys(map).sort((a, b) => b.length - a.length);
+    if (!text || !words.length) return escapeHtml(text);
+    let out = '';
+    let i = 0;
+    while (i < text.length) {
+      const w = words.find(x => text.startsWith(x, i));
+      if (w) {
+        out += `<span class="hl-${map[w]}">${escapeHtml(w)}</span>`;
+        i += w.length;
+      } else {
+        out += escapeHtml(text[i]);
+        i += 1;
+      }
+    }
+    return out;
+  }
+
   function renderResults() {
     if (!currentResult) return;
 
-    originalText.textContent = currentResult.original;
+    const statusMap = dictStatusMap();
+    originalText.innerHTML = currentResult.isChinese ? highlightHtml(currentResult.original, statusMap) : escapeHtml(currentResult.original);
 
     if (currentResult.isChinese) {
       fullPinyin.textContent = currentResult.pinyinFull;
@@ -302,7 +349,7 @@
       // Source EN/ES → show Chinese + Pinyin
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
-      fullEnglish.textContent = currentResult.chineseFull;
+      fullEnglish.innerHTML = highlightHtml(currentResult.chineseFull, statusMap);
       fullEnglish.classList.remove('hidden');
       fullSpanish.classList.add('hidden');
       btnShowSpanish.classList.add('hidden');
@@ -328,7 +375,7 @@
 
       tr.innerHTML = `
         <td class="word-char-cell">
-          <span class="word-char">${escapeHtml(w.char)}</span>
+          <span class="word-char">${highlightHtml(w.char)}</span>
           <button class="speak-btn" data-speak="${escapeHtml(w.char)}" title="Play audio" aria-label="Play audio">🔊</button>
         </td>
         <td class="word-pinyin">${escapeHtml(w.pinyin)}</td>
@@ -440,6 +487,7 @@
     dict.splice(dict.indexOf(item), 1);
     dict.unshift(item);
     saveDict(dict);
+    if (currentResult) renderResults();
     renderDictionary();
   }
 
@@ -535,6 +583,7 @@
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
     $('#quiz-meaning').textContent = item.en;
+    exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
     $('#quiz-flip').textContent = 'Flip card';
@@ -542,10 +591,32 @@
     $('#quiz-learning').disabled = quizMode === 'word' && item.status === 'learning';
   }
 
+  // ---------- Example sentences (only ones you added) ----------
+  let exIdx = 0;
+
   function fillExample(item) {
-    $('#quiz-example').textContent = item.example || '…';
-    $('#quiz-example-pinyin').textContent = item.example ? sentencePinyin(item.example) : '';
-    $('#quiz-example-en').textContent = item.exampleEn || '';
+    const list = item.sentences || [];
+    if (exIdx >= list.length) exIdx = 0;
+    const cur = list[exIdx];
+    $('#quiz-example').textContent = cur ? cur.zh : 'No example yet. Add a sentence where you found this word.';
+    $('#quiz-example').classList.toggle('empty', !cur);
+    $('#quiz-example-pinyin').textContent = cur ? sentencePinyin(cur.zh) : '';
+    $('#quiz-example-en').textContent = cur ? cur.en : '';
+    $('#quiz-refresh').classList.toggle('hidden', list.length < 2);
+    $('#quiz-ex-count').textContent = list.length > 1 ? `${exIdx + 1}/${list.length}` : '';
+    $('#quiz-ex-delete').classList.toggle('hidden', !cur);
+    $('#quiz-add-form').classList.add('hidden');
+    $('#quiz-add').classList.remove('hidden');
+  }
+
+  function updateSentences(item, sentences) {
+    const dict = getDict();
+    const stored = dict.find(d => d.id === item.id);
+    if (stored) {
+      stored.sentences = sentences;
+      saveDict(dict);
+    }
+    item.sentences = sentences;
   }
 
   function sentencePinyin(text) {
@@ -554,37 +625,49 @@
     try { return lib.pinyin(text, { toneType: 'symbol' }); } catch { return ''; }
   }
 
-  // Words saved without a phrase get a short example made from their meaning.
-  // We translate a few simple English sentences and keep the first one that uses the word;
-  // if none does, we fall back to a sentence that always fits: "Today I learned the word 「X」."
-  async function makeExample(item) {
-    const m = (item.en || '').replace(/[.!?]+$/, '').trim();
-    const mm = m.replace(/^to /i, '');
-    const templates = m ? [
-      `I like ${m}.`,
-      `I want to ${mm} today.`,
-      `This is very ${mm}.`,
-      `The ${mm} is here.`
-    ] : [];
-    for (const en of templates) {
-      const zh = await translateText(en, 'zh-CN');
-      if (zh && zh.includes(item.char)) return { example: zh, exampleEn: en };
-    }
-    return { example: `我今天学了「${item.char}」这个词。`, exampleEn: `Today I learned the word “${item.char}”.` };
+  // ↻ shows the next of your sentences
+  function nextExample() {
+    if (!quizItem || (quizItem.sentences || []).length < 2) return;
+    exIdx = (exIdx + 1) % quizItem.sentences.length;
+    fillExample(quizItem);
   }
 
-  async function ensureExample(item) {
-    if (item.example) return;
-    $('#quiz-example').textContent = 'Writing an example…';
-    const ex = await makeExample(item);
-    const dict = getDict();
-    const stored = dict.find(d => d.id === item.id);
-    if (stored) {
-      Object.assign(stored, ex);
-      saveDict(dict);
+  function openAddSentence() {
+    $('#quiz-add-form').classList.remove('hidden');
+    $('#quiz-add').classList.add('hidden');
+    const input = $('#quiz-add-input');
+    input.value = '';
+    input.focus();
+  }
+
+  async function saveSentence() {
+    if (!quizItem) return;
+    const zh = $('#quiz-add-input').value.trim();
+    if (!zh) return;
+    if (!zh.includes(quizItem.char)) {
+      showToast(`The sentence must contain ${quizItem.char}`);
+      return;
     }
-    Object.assign(item, ex);
-    if (quizItem && quizItem.id === item.id) fillExample(item);
+    if (quizItem.sentences.some(x => x.zh === zh)) {
+      showToast('You already added this sentence');
+      return;
+    }
+    const btn = $('#quiz-add-save');
+    btn.disabled = true;
+    const en = await translateText(zh, 'en');
+    btn.disabled = false;
+    updateSentences(quizItem, [...quizItem.sentences, { zh, en }]);
+    exIdx = quizItem.sentences.length - 1;
+    fillExample(quizItem);
+    showToast('Sentence added ✓');
+  }
+
+  function deleteSentence() {
+    if (!quizItem || !quizItem.sentences[exIdx]) return;
+    updateSentences(quizItem, quizItem.sentences.filter((_, i) => i !== exIdx));
+    exIdx = 0;
+    fillExample(quizItem);
+    showToast('Sentence deleted');
   }
 
   function openWordCard(item) {
@@ -634,10 +717,14 @@
   $('#quiz-flip').addEventListener('click', () => {
     const back = $('#quiz-back');
     back.classList.toggle('hidden');
-    if (!back.classList.contains('hidden') && quizItem) ensureExample(quizItem);
     $('#quiz-flip').textContent = back.classList.contains('hidden') ? 'Flip card' : 'Hide';
   });
   $('#quiz-next').addEventListener('click', nextQuizCard);
+  $('#quiz-refresh').addEventListener('click', nextExample);
+  $('#quiz-add').addEventListener('click', openAddSentence);
+  $('#quiz-add-cancel').addEventListener('click', () => fillExample(quizItem));
+  $('#quiz-add-save').addEventListener('click', saveSentence);
+  $('#quiz-ex-delete').addEventListener('click', deleteSentence);
   $('#quiz-known').addEventListener('click', () => {
     if (!quizItem) return;
     setStatus(quizItem.id, 'known');

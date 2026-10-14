@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -191,10 +191,24 @@
         <div id="quiz-back" class="quiz-back hidden">
           <div id="quiz-pinyin" class="quiz-pinyin"></div>
           <div id="quiz-meaning" class="quiz-meaning"></div>
-          <div class="quiz-example-label">EXAMPLE</div>
-          <div id="quiz-example" class="quiz-example"></div>
+          <div class="quiz-example-label">EXAMPLE <span id="quiz-ex-count"></span></div>
+          <div class="quiz-example-row">
+            <div id="quiz-example" class="quiz-example"></div>
+            <button id="quiz-refresh" class="refresh-btn hidden" title="Next example" aria-label="Show your next example">↻</button>
+          </div>
           <div id="quiz-example-pinyin" class="quiz-example-pinyin"></div>
           <div id="quiz-example-en" class="quiz-example-en"></div>
+          <div class="example-tools">
+            <button id="quiz-add" class="text-btn">+ Add sentence</button>
+            <button id="quiz-ex-delete" class="text-btn danger hidden">Delete this sentence</button>
+          </div>
+          <div id="quiz-add-form" class="add-form hidden">
+            <textarea id="quiz-add-input" rows="2" placeholder="Paste or type a Chinese sentence that uses this word"></textarea>
+            <div class="add-form-actions">
+              <button id="quiz-add-cancel" class="text-btn">Cancel</button>
+              <button id="quiz-add-save" class="btn small primary">Save</button>
+            </div>
+          </div>
         </div>
         <div class="quiz-actions">
           <button id="quiz-audio" class="btn secondary">🔊 Audio</button>
@@ -251,12 +265,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.3 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.4 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=9"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

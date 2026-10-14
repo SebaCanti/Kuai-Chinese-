@@ -28,7 +28,7 @@ A PWA to learn Chinese fast.
 
 - Chinese compounds (e.g. 北京大学) are kept together where possible.
 - You can save single words, or all of them, to your **personal dictionary**, where they become flash cards. New words sit in the middle; mark each one as Memorized (left pile) or Not memorized (right pile). Tap a pile to see its words and keep studying them.
-- **Random** shows a saved word's characters and plays its audio; **Flip card** reveals the Pinyin, English meaning and an example sentence (the phrase you saved it from, or a short one made for the word).
+- **Random** shows a saved word's characters and plays its audio; **Flip card** reveals the Pinyin, English meaning and your example sentences: the phrase you saved it from, plus any sentence you add with **+ Add sentence** (↻ moves between them). The app never makes up examples.
 - Every Chinese phrase and word has a 🔊 button to hear it.
 - Every phrase is kept in your **history** to review later.
 
