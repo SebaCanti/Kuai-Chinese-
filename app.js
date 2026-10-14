@@ -73,7 +73,41 @@
     catch { return []; }
   }
   function saveHistory(items) {
-    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(items.slice(0, 100)));
+    const next = items.slice(0, 100);
+    const ids = new Set(next.map(h => String(h.id)));
+    readRaw(STORAGE_HISTORY).forEach(h => { if (!ids.has(String(h.id))) markDeleted('history', String(h.id)); });
+    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(next));
+    scheduleSync();
+  }
+
+  // ---------- Change tracking for sync ----------
+  // Each dictionary word carries `updated` (ms). Deleted words/history entries
+  // leave a tombstone so the deletion also reaches the other device.
+  const STORAGE_DELETED = 'kuai_deleted';
+  function readRaw(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  }
+  function getDeleted() {
+    try { return { dict: {}, history: {}, ...JSON.parse(localStorage.getItem(STORAGE_DELETED) || '{}') }; }
+    catch { return { dict: {}, history: {} }; }
+  }
+  function saveDeleted(del) {
+    // Forget tombstones older than 180 days
+    const cutoff = Date.now() - 180 * 864e5;
+    ['dict', 'history'].forEach(k => {
+      Object.keys(del[k]).forEach(id => { if (del[k][id] < cutoff) delete del[k][id]; });
+    });
+    localStorage.setItem(STORAGE_DELETED, JSON.stringify(del));
+  }
+  function markDeleted(kind, key) {
+    const del = getDeleted();
+    del[kind][key] = Date.now();
+    saveDeleted(del);
+  }
+  function sameWord(a, b) {
+    const { updated: _a, ...x } = a;
+    const { updated: _b, ...y } = b;
+    return JSON.stringify(x) === JSON.stringify(y);
   }
   // Each word has a flash-card status: 'new' | 'known' (memorized) | 'learning' (not memorized)
   function getDict() {
@@ -96,7 +130,21 @@
     });
   }
   function saveDict(items) {
+    const prev = {};
+    readRaw(STORAGE_DICT).forEach(d => { prev[d.char] = d; });
+    const now = Date.now();
+    const chars = new Set();
+    items.forEach(it => {
+      chars.add(it.char);
+      const p = prev[it.char];
+      it.updated = (!p || !sameWord(p, it)) ? now : (p.updated || 0);
+    });
+    Object.keys(prev).forEach(c => { if (!chars.has(c)) markDeleted('dict', c); });
+    const del = getDeleted();
+    items.forEach(it => { if (del.dict[it.char]) delete del.dict[it.char]; });
+    saveDeleted(del);
     localStorage.setItem(STORAGE_DICT, JSON.stringify(items));
+    scheduleSync();
   }
 
   function addToHistory(entry) {
@@ -189,11 +237,11 @@
 
   // ---------- Translation (free Google endpoint) ----------
   // Fetch with a time limit so a stalled request on a phone never hangs the app.
-  async function fetchWithTimeout(url, ms = 12000) {
+  async function fetchWithTimeout(url, ms = 12000, opts = {}) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), ms);
     try {
-      return await fetch(url, { signal: ctrl.signal });
+      return await fetch(url, { ...opts, signal: ctrl.signal });
     } finally {
       clearTimeout(timer);
     }
@@ -234,8 +282,70 @@
     return out;
   }
 
+  // ---------- Offline word list (CC-CEDICT, CC BY-SA 4.0) ----------
+  // One "word<TAB>meaning" per line. Gives word meanings without the network
+  // and lets compound words (昨天, 咳嗽, 午饭) stay together.
+  let cedict = null;
+  let cedictLoading = null;
+  function loadCedict() {
+    if (cedict) return Promise.resolve(cedict);
+    if (!cedictLoading) {
+      cedictLoading = fetchWithTimeout('cedict.txt?v=12', 30000)
+        .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
+        .then(txt => {
+          const map = new Map();
+          txt.split('\n').forEach(line => {
+            const tab = line.indexOf('\t');
+            if (tab > 0) map.set(line.slice(0, tab), line.slice(tab + 1));
+          });
+          cedict = map;
+          return map;
+        })
+        .catch(err => { console.warn('Word list unavailable', err); cedictLoading = null; return null; });
+    }
+    return cedictLoading;
+  }
+
+  function wordPinyin(word) {
+    const fn = (window.pinyinPro || {}).pinyin;
+    if (!fn) return word;
+    try { return fn(word, { toneType: 'symbol' }).replace(/\s+/g, ''); } catch (e) { return word; }
+  }
+
+  // Longest match first against the word list, up to 4 characters.
+  function segmentWithCedict(text, dict) {
+    const out = [];
+    const chars = Array.from(text);
+    let i = 0;
+    while (i < chars.length) {
+      if (!/[\u4e00-\u9fff\u3400-\u4dbf]/.test(chars[i])) { i++; continue; }
+      let len = Math.min(4, chars.length - i);
+      for (; len > 1; len--) {
+        if (dict.has(chars.slice(i, i + len).join(''))) break;
+      }
+      const word = chars.slice(i, i + len).join('');
+      out.push({ origin: word, result: wordPinyin(word) });
+      i += len;
+    }
+    return out;
+  }
+
+  // Meanings from the word list first; Google only for words it doesn't have.
+  async function wordMeanings(words) {
+    const dict = await loadCedict();
+    const out = {};
+    const missing = [];
+    words.forEach(w => {
+      if (dict && dict.has(w)) out[w] = dict.get(w);
+      else missing.push(w);
+    });
+    if (missing.length) Object.assign(out, await translateWords(missing, 'en'));
+    return out;
+  }
+
   // ---------- Chinese segmentation + Pinyin ----------
   function segmentAndPinyin(text) {
+    if (cedict) return segmentWithCedict(text, cedict);
     const lib = window.pinyinPro || {};
     const pinyinFn = lib.pinyin;
     const segmentFn = lib.segment;
@@ -299,11 +409,12 @@
 
       if (chinese) {
         // Chinese → Pinyin + English
+        await loadCedict();
         const segs = segmentAndPinyin(text);
         result.pinyinFull = segs.map(s => s.result).join(' ');
         const [englishFull, meanings] = await Promise.all([
           translateText(text, 'en'),
-          translateWords(segs.map(s => s.origin), 'en')
+          wordMeanings(segs.map(s => s.origin))
         ]);
         result.englishFull = englishFull;
         result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
@@ -313,10 +424,11 @@
         result.chineseFull = chineseText;
         result.englishFull = text; // keep original for reference
 
+        await loadCedict();
         const segs = segmentAndPinyin(chineseText);
         result.pinyinFull = segs.map(s => s.result).join(' ');
 
-        const meanings = await translateWords(segs.map(s => s.origin), 'en');
+        const meanings = await wordMeanings(segs.map(s => s.origin));
         result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
       }
 
@@ -922,8 +1034,178 @@
     });
   });
 
+
+  // ---------- Sync between devices (private GitHub gist) ----------
+  const SYNC_TOKEN = 'kuai_sync_token';
+  const SYNC_GIST = 'kuai_sync_gist';
+  const SYNC_LAST = 'kuai_sync_last';
+  const SYNC_FILE = 'kuai-chinese-sync.json';
+  let syncTimer = null;
+  let syncRunning = null;
+
+  function gh(path, opts = {}) {
+    return fetchWithTimeout('https://api.github.com' + path, 20000, {
+      ...opts,
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': 'Bearer ' + localStorage.getItem(SYNC_TOKEN),
+        ...(opts.body ? { 'Content-Type': 'application/json' } : {})
+      }
+    }).then(async res => {
+      if (!res.ok) throw new Error(res.status === 401 ? 'Token rejected' : 'GitHub error ' + res.status);
+      return res.json();
+    });
+  }
+
+  function scheduleSync() {
+    if (!localStorage.getItem(SYNC_TOKEN)) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => syncNow(), 3000);
+  }
+
+  async function findOrCreateGist() {
+    let id = localStorage.getItem(SYNC_GIST);
+    if (id) return id;
+    for (let page = 1; page <= 5 && !id; page++) {
+      const list = await gh(`/gists?per_page=100&page=${page}`);
+      const found = list.find(g => g.files && g.files[SYNC_FILE]);
+      if (found) id = found.id;
+      if (list.length < 100) break;
+    }
+    if (!id) {
+      const created = await gh('/gists', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: 'Kuai Chinese sync (history + dictionary)',
+          public: false,
+          files: { [SYNC_FILE]: { content: JSON.stringify({ version: 1, dict: [], history: [], deleted: { dict: {}, history: {} } }) } }
+        })
+      });
+      id = created.id;
+    }
+    localStorage.setItem(SYNC_GIST, id);
+    return id;
+  }
+
+  async function readGist(id) {
+    const gist = await gh('/gists/' + id);
+    const file = gist.files && gist.files[SYNC_FILE];
+    if (!file) return null;
+    let content = file.content;
+    if (file.truncated && file.raw_url) content = await (await fetchWithTimeout(file.raw_url, 20000)).text();
+    try { return JSON.parse(content); } catch { return null; }
+  }
+
+  function mergeData(local, remote) {
+    const deleted = { dict: {}, history: {} };
+    ['dict', 'history'].forEach(k => {
+      [local.deleted[k], (remote.deleted || {})[k] || {}].forEach(src => {
+        Object.entries(src).forEach(([key, t]) => { deleted[k][key] = Math.max(deleted[k][key] || 0, t); });
+      });
+    });
+
+    const words = {};
+    [...(remote.dict || []), ...local.dict].forEach(w => {
+      const cur = words[w.char];
+      if (!cur || (w.updated || 0) >= (cur.updated || 0)) words[w.char] = w;
+    });
+    const dict = Object.values(words)
+      .filter(w => !(deleted.dict[w.char] >= (w.updated || 0)))
+      .sort((a, b) => (a.id || 0) - (b.id || 0));
+
+    const entries = {};
+    [...(remote.history || []), ...local.history].forEach(h => { entries[String(h.id)] = h; });
+    const history = Object.values(entries)
+      .filter(h => !deleted.history[String(h.id)])
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+      .slice(0, 100);
+
+    return { version: 1, dict, history, deleted };
+  }
+
+  function syncNow(showResult = false) {
+    if (!localStorage.getItem(SYNC_TOKEN)) return Promise.resolve();
+    if (syncRunning) return syncRunning;
+    setSyncStatus('Syncing…');
+    syncRunning = (async () => {
+      try {
+        const id = await findOrCreateGist();
+        const remote = (await readGist(id)) || {};
+        const local = { dict: readRaw(STORAGE_DICT), history: readRaw(STORAGE_HISTORY), deleted: getDeleted() };
+        const merged = mergeData(local, remote);
+        localStorage.setItem(STORAGE_DICT, JSON.stringify(merged.dict));
+        localStorage.setItem(STORAGE_HISTORY, JSON.stringify(merged.history));
+        saveDeleted(merged.deleted);
+        const content = JSON.stringify(merged);
+        if (content !== JSON.stringify({ version: 1, dict: remote.dict, history: remote.history, deleted: remote.deleted })) {
+          await gh('/gists/' + id, { method: 'PATCH', body: JSON.stringify({ files: { [SYNC_FILE]: { content } } }) });
+        }
+        localStorage.setItem(SYNC_LAST, new Date().toISOString());
+        renderHistory();
+        renderDictionary();
+        if (currentResult) renderResults();
+        setSyncStatus();
+        if (showResult) showToast('Synced ✓');
+      } catch (err) {
+        console.warn('Sync failed', err);
+        setSyncStatus('Sync failed: ' + err.message);
+        if (showResult) showToast('Sync failed');
+      } finally {
+        syncRunning = null;
+      }
+    })();
+    return syncRunning;
+  }
+
+  function setSyncStatus(msg) {
+    const status = $('#sync-status');
+    if (!status) return;
+    const connected = !!localStorage.getItem(SYNC_TOKEN);
+    $('#sync-setup').classList.toggle('hidden', connected);
+    $('#sync-connected').classList.toggle('hidden', !connected);
+    if (msg) { status.textContent = msg; return; }
+    if (!connected) { status.textContent = 'Not connected. History and dictionary live only on this device.'; return; }
+    const last = localStorage.getItem(SYNC_LAST);
+    status.textContent = last
+      ? `Connected. Last sync ${new Date(last).toLocaleString()}.`
+      : 'Connected.';
+  }
+
+  async function connectSync() {
+    const token = $('#sync-token').value.trim();
+    if (!token) { showToast('Paste your GitHub token first'); return; }
+    localStorage.setItem(SYNC_TOKEN, token);
+    localStorage.removeItem(SYNC_GIST);
+    try {
+      await gh('/user');
+    } catch (err) {
+      localStorage.removeItem(SYNC_TOKEN);
+      setSyncStatus('Could not connect: ' + err.message);
+      return;
+    }
+    $('#sync-token').value = '';
+    await syncNow(true);
+  }
+
+  function disconnectSync() {
+    [SYNC_TOKEN, SYNC_GIST, SYNC_LAST].forEach(k => localStorage.removeItem(k));
+    setSyncStatus();
+    showToast('Sync turned off on this device');
+  }
+
+  $('#sync-connect').addEventListener('click', connectSync);
+  $('#sync-now').addEventListener('click', () => syncNow(true));
+  $('#sync-disconnect').addEventListener('click', disconnectSync);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') syncNow();
+  });
+
   // Initial
   renderHistory();
   renderDictionary();
   applyTheme(getSavedTheme());
+  // Warm up the offline word list so the first translation is fast
+  setTimeout(loadCedict, 1500);
+  setSyncStatus();
+  syncNow();
 })();

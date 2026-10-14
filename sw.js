@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kuai-chinese-v11';
+const CACHE_NAME = 'kuai-chinese-v12';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=11',
-  './app.js?v=11',
+  './styles.css?v=12',
+  './app.js?v=12',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -30,7 +30,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Translation and audio requests go straight to the network, untouched
   if (event.request.url.includes('translate.googleapis.com') ||
-      event.request.url.includes('translate.google.com')) {
+      event.request.url.includes('translate.google.com') ||
+      event.request.url.includes('api.github.com') ||
+      event.request.url.includes('gist.githubusercontent.com') ||
+      event.request.method !== 'GET') {
     return;
   }
 

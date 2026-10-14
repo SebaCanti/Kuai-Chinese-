@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -235,6 +235,23 @@
       </div>
 
       <section class="result-block">
+        <h3>&gt; SYNC DEVICES</h3>
+        <p class="settings-desc" id="sync-status">Not connected.</p>
+        <div id="sync-setup" class="add-form">
+          <p class="settings-desc">Keep history and dictionary the same on your computer and phone. They are saved in a private gist in your GitHub account.</p>
+          <p class="settings-desc">1. <a class="sync-link" href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Kuai%20Chinese%20sync" target="_blank" rel="noopener">Create a GitHub token</a> with only "gist" ticked and no expiration.<br>2. Paste it here, on every device.</p>
+          <input id="sync-token" class="sync-input" type="password" autocomplete="off" placeholder="ghp_..." />
+          <div class="add-form-actions">
+            <button class="btn primary small" id="sync-connect">Connect</button>
+          </div>
+        </div>
+        <div id="sync-connected" class="add-form-actions hidden">
+          <button class="text-btn danger" id="sync-disconnect">Disconnect</button>
+          <button class="btn small" id="sync-now">Sync now</button>
+        </div>
+      </section>
+
+      <section class="result-block">
         <h3>&gt; VISUAL THEME</h3>
         <p class="settings-desc">Pick your cyberpunk style. It is saved automatically.</p>
         <div class="theme-grid" id="theme-grid">
@@ -268,12 +285,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.4 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.4 — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

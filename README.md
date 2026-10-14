@@ -74,3 +74,11 @@ python3 -m http.server 8080
 ```
 
 Then open `http://localhost:8080` in your phone's browser (same Wi-Fi network).
+
+## Word meanings and compound words
+
+`cedict.txt` is a compact word list built from [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cc-cedict) (CC BY-SA 4.0): one `word<TAB>meaning` per line, words up to 4 characters. The app splits Chinese text by longest match against it, so compound words like 咳嗽 or 一点点 stay together, and takes the word-by-word meanings from it without needing the network. Google Translate is only used for the full sentence and for words missing from the list.
+
+## Sync between devices
+
+Settings › Sync devices stores history and dictionary in a private gist (`kuai-chinese-sync.json`) in your GitHub account. Create a token with only the `gist` scope and paste it on each device. Changes sync a few seconds after you make them and when the app comes back to the foreground; deletions sync too.
