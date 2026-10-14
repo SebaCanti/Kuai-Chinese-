@@ -300,10 +300,38 @@
   }
 
   // ---------- Render results ----------
+  // ---------- Dictionary colors in translations ----------
+  // Words already in your dictionary are colored: green = memorized, red = not memorized.
+  function dictStatusMap() {
+    const map = {};
+    getDict().forEach(d => { if (d.status === 'known' || d.status === 'learning') map[d.char] = d.status; });
+    return map;
+  }
+
+  // Escapes the text and wraps dictionary words, matching the longest word first.
+  function highlightHtml(text, map = dictStatusMap()) {
+    const words = Object.keys(map).sort((a, b) => b.length - a.length);
+    if (!text || !words.length) return escapeHtml(text);
+    let out = '';
+    let i = 0;
+    while (i < text.length) {
+      const w = words.find(x => text.startsWith(x, i));
+      if (w) {
+        out += `<span class="hl-${map[w]}">${escapeHtml(w)}</span>`;
+        i += w.length;
+      } else {
+        out += escapeHtml(text[i]);
+        i += 1;
+      }
+    }
+    return out;
+  }
+
   function renderResults() {
     if (!currentResult) return;
 
-    originalText.textContent = currentResult.original;
+    const statusMap = dictStatusMap();
+    originalText.innerHTML = currentResult.isChinese ? highlightHtml(currentResult.original, statusMap) : escapeHtml(currentResult.original);
 
     if (currentResult.isChinese) {
       fullPinyin.textContent = currentResult.pinyinFull;
@@ -321,7 +349,7 @@
       // Source EN/ES → show Chinese + Pinyin
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
-      fullEnglish.textContent = currentResult.chineseFull;
+      fullEnglish.innerHTML = highlightHtml(currentResult.chineseFull, statusMap);
       fullEnglish.classList.remove('hidden');
       fullSpanish.classList.add('hidden');
       btnShowSpanish.classList.add('hidden');
@@ -347,7 +375,7 @@
 
       tr.innerHTML = `
         <td class="word-char-cell">
-          <span class="word-char">${escapeHtml(w.char)}</span>
+          <span class="word-char">${highlightHtml(w.char)}</span>
           <button class="speak-btn" data-speak="${escapeHtml(w.char)}" title="Play audio" aria-label="Play audio">🔊</button>
         </td>
         <td class="word-pinyin">${escapeHtml(w.pinyin)}</td>
@@ -459,6 +487,7 @@
     dict.splice(dict.indexOf(item), 1);
     dict.unshift(item);
     saveDict(dict);
+    if (currentResult) renderResults();
     renderDictionary();
   }
 

@@ -1298,3 +1298,17 @@ body::after {
 .add-form textarea:focus { outline: none; border-color: var(--primary); }
 .add-form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
 .add-form-actions .btn { width: auto; }
+
+/* ===== Dictionary colors in translations: green = memorized, red = not memorized ===== */
+:root {
+  --hl-known: #3ddc84;
+  --hl-learning: #ff5c6c;
+}
+.hl-known, .hl-learning {
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 0 1px;
+  text-shadow: none;
+}
+.hl-known { color: var(--hl-known); background: rgba(61, 220, 132, 0.14); box-shadow: inset 0 -2px 0 var(--hl-known); }
+.hl-learning { color: var(--hl-learning); background: rgba(255, 92, 108, 0.14); box-shadow: inset 0 -2px 0 var(--hl-learning); }
