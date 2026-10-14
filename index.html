@@ -9,12 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -96,12 +97,14 @@
         <section class="result-block">
           <h3>&gt; ORIGINAL</h3>
           <div id="original-text" class="text-box clear-text"></div>
+          <button id="speak-original" class="speak-btn" title="Play audio" aria-label="Play audio">🔊</button>
         </section>
 
         <section class="result-block">
           <h3 id="full-title">&gt; FULL TRANSLATION</h3>
           <div id="full-pinyin" class="text-box pinyin"></div>
           <div id="full-english" class="text-box clear-text"></div>
+          <button id="speak-full" class="speak-btn hidden" title="Play audio" aria-label="Play audio">🔊</button>
           <div id="full-spanish" class="text-box clear-text hidden"></div>
           <button id="btn-show-spanish" class="btn secondary small">Show in Spanish</button>
         </section>
@@ -146,10 +149,52 @@
         <h2>&gt; MY DICTIONARY</h2>
         <button id="btn-clear-dict" class="btn danger small">Clear all</button>
       </div>
-      <div id="dict-list" class="list-container">
-        <p class="empty-state">You haven’t saved any words yet.</p>
+      <div id="dict-board" class="dict-board">
+        <section class="dict-col" data-status="known">
+          <h3>MEMORIZED <span class="count" id="count-known">0</span></h3>
+          <div class="dict-cards" id="col-known"></div>
+        </section>
+        <section class="dict-col" data-status="new">
+          <h3>NEW <span class="count" id="count-new">0</span></h3>
+          <div class="dict-cards" id="col-new"></div>
+        </section>
+        <section class="dict-col" data-status="learning">
+          <h3>NOT MEMORIZED <span class="count" id="count-learning">0</span></h3>
+          <div class="dict-cards" id="col-learning"></div>
+        </section>
+      </div>
+      <p id="dict-empty" class="empty-state">You haven’t saved any words yet.</p>
+      <div class="dict-footer">
+        <button id="btn-random" class="btn primary">Random</button>
       </div>
     </main>
+
+    <!-- Random flash card quiz -->
+    <div id="quiz" class="quiz hidden" role="dialog" aria-modal="true" aria-labelledby="quiz-title">
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span id="quiz-title">&gt; RANDOM CARD</span>
+          <button id="quiz-close" class="quiz-x" aria-label="Close">×</button>
+        </div>
+        <div id="quiz-char" class="quiz-char"></div>
+        <div id="quiz-back" class="quiz-back hidden">
+          <div id="quiz-pinyin" class="quiz-pinyin"></div>
+          <div id="quiz-meaning" class="quiz-meaning"></div>
+          <div class="quiz-example-label">EXAMPLE</div>
+          <div id="quiz-example" class="quiz-example"></div>
+          <div id="quiz-example-en" class="quiz-example-en"></div>
+        </div>
+        <div class="quiz-actions">
+          <button id="quiz-audio" class="btn secondary">🔊 Audio</button>
+          <button id="quiz-flip" class="btn primary">Flip card</button>
+        </div>
+        <div class="quiz-actions">
+          <button id="quiz-known" class="btn small">Memorized</button>
+          <button id="quiz-learning" class="btn small danger">Not memorized</button>
+          <button id="quiz-next" class="btn small secondary">Next</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
@@ -191,12 +236,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.2 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.3 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
