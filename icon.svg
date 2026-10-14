@@ -1,0 +1,20 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="scan" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="3" fill="#000" opacity=".45"/></pattern>
+    <radialGradient id="scr" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#00ff64" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="512" height="512" fill="#2b2c2b"/>
+  <rect x="34" y="34" width="444" height="444" rx="64" fill="#020605" stroke="#3d3f3d" stroke-width="6"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="url(#scr)"/>
+  <g filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round">
+    <text x="256" y="262" text-anchor="middle" font-family="'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif" font-weight="900" font-size="212" fill="#00ff64">快</text>
+    <!-- open book -->
+    <path d="M256 330 Q200 300 124 314 V408 Q200 394 256 420 Z" fill="#00ff64" fill-opacity=".14" stroke="#00ff64" stroke-width="8"/>
+    <path d="M256 330 Q312 300 388 314 V408 Q312 394 256 420 Z" fill="#00ff64" fill-opacity=".14" stroke="#00ff64" stroke-width="8"/>
+    <path d="M152 340 Q196 332 232 346 M152 362 Q196 354 232 368 M152 384 Q196 376 232 390" fill="none" stroke="#00ff64" stroke-width="6" opacity=".8"/>
+    <path d="M280 346 Q316 332 360 340 M280 368 Q316 354 360 362 M280 390 Q316 376 360 384" fill="none" stroke="#00ff64" stroke-width="6" opacity=".8"/>
+    <line x1="256" y1="330" x2="256" y2="420" stroke="#00ff64" stroke-width="8"/>
+  </g>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="url(#scan)"/>
+</svg>

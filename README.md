@@ -27,7 +27,9 @@ A PWA to learn Chinese fast.
 | **English or Spanish** | Full Chinese translation + Pinyin + word-by-word table. |
 
 - Chinese compounds (e.g. 北京大学) are kept together where possible.
-- You can save single words, or all of them, to your **personal dictionary**.
+- You can save single words, or all of them, to your **personal dictionary**, where they become flash cards: mark each one as Memorized (left column) or Not memorized (right column). New words sit in the middle.
+- **Random** shows a saved word's characters and plays its audio; **Flip card** reveals the Pinyin, English meaning and the phrase you saved it from.
+- Every Chinese phrase and word has a 🔊 button to hear it.
 - Every phrase is kept in your **history** to review later.
 
 ## Look and feel
@@ -47,6 +49,8 @@ kuai-chinese/
 ├── sw.js           ← works offline (app shell)
 ├── icon-192.png
 ├── icon-512.png
+├── icon.svg
+├── apple-touch-icon.png
 └── README.md
 ```
 
@@ -56,6 +60,8 @@ kuai-chinese/
 - Pinyin and segmentation: `pinyin-pro` library.
 - Data (history and dictionary) is stored only on your device (`localStorage`).
 - Needs HTTPS (or localhost) to read the clipboard.
+- Dictionary words are flash cards with a status (new, memorized, not memorized). Random mode quizzes you on any saved word and plays its audio.
+- Chinese audio uses the device's Chinese voice when available, otherwise Google Translate speech.
 - When changing `styles.css` or `app.js`, bump the `?v=` in `index.html` and `sw.js` and the `CACHE_NAME` in `sw.js` so installed apps pick up the new files.
 
 ## Quick local server

@@ -1,12 +1,14 @@
-const CACHE_NAME = 'kuai-chinese-v3';
+const CACHE_NAME = 'kuai-chinese-v4';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=3',
-  './app.js?v=3',
+  './styles.css?v=4',
+  './app.js?v=4',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './icon.svg',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -28,6 +30,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Network-first for translate API, cache-first for app shell
   if (event.request.url.includes('translate.googleapis.com') ||
+      event.request.url.includes('translate.google.com') ||
       event.request.url.includes('cdn.jsdelivr.net') ||
       event.request.url.includes('unpkg.com')) {
     event.respondWith(
