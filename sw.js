@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kuai-chinese-v10';
+const CACHE_NAME = 'kuai-chinese-v11';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=10',
-  './app.js?v=10',
+  './styles.css?v=11',
+  './app.js?v=11',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -28,10 +28,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network-first for translate API, cache-first for app shell
+  // Translation and audio requests go straight to the network, untouched
   if (event.request.url.includes('translate.googleapis.com') ||
-      event.request.url.includes('translate.google.com') ||
-      event.request.url.includes('cdn.jsdelivr.net') ||
+      event.request.url.includes('translate.google.com')) {
+    return;
+  }
+
+  // Network-first for CDN libraries, cache-first for app shell
+  if (event.request.url.includes('cdn.jsdelivr.net') ||
       event.request.url.includes('unpkg.com')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
