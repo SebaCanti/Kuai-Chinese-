@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="neon-tokyo">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#e63946" />
+  <meta name="theme-color" content="#0a0a12" />
   <meta name="description" content="Kuai Chinese - Aprende chino rápido: pega texto, obtén Pinyin, traducciones y estudia con tu diccionario personal." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -12,7 +12,6 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Kuai Chinese</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- pinyin-pro CDN -->
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -24,6 +23,7 @@
         <button class="tab active" data-tab="translate">Traducir</button>
         <button class="tab" data-tab="history">Historial</button>
         <button class="tab" data-tab="dictionary">Diccionario</button>
+        <button class="tab" data-tab="settings">Ajustes</button>
       </nav>
     </header>
 
@@ -43,13 +43,11 @@
       </div>
 
       <div id="results" class="results hidden">
-        <!-- Original -->
         <section class="result-block">
           <h3>Original</h3>
           <div id="original-text" class="text-box"></div>
         </section>
 
-        <!-- Full translation -->
         <section class="result-block">
           <h3 id="full-title">Traducción completa</h3>
           <div id="full-pinyin" class="text-box pinyin"></div>
@@ -58,7 +56,6 @@
           <button id="btn-show-spanish" class="btn secondary small">Mostrar en español</button>
         </section>
 
-        <!-- Word by word -->
         <section class="result-block">
           <h3>Palabra por palabra</h3>
           <div class="word-table-wrapper">
@@ -102,6 +99,50 @@
       <div id="dict-list" class="list-container">
         <p class="empty-state">Aún no has guardado palabras.</p>
       </div>
+    </main>
+
+    <!-- Settings Tab -->
+    <main id="tab-settings" class="tab-content">
+      <div class="section-header">
+        <h2>Ajustes</h2>
+      </div>
+
+      <section class="result-block">
+        <h3>Tema visual</h3>
+        <p class="settings-desc">Elige el estilo cyberpunk de la app. Se guarda automáticamente.</p>
+        <div class="theme-grid" id="theme-grid">
+          <button class="theme-card" data-theme="neon-tokyo">
+            <div class="theme-preview neon-tokyo-preview"></div>
+            <span class="theme-name">Neon Tokyo</span>
+            <span class="theme-desc">Rosa + cian neón</span>
+          </button>
+          <button class="theme-card" data-theme="matrix-soft">
+            <div class="theme-preview matrix-soft-preview"></div>
+            <span class="theme-name">Matrix Soft</span>
+            <span class="theme-desc">Verde digital</span>
+          </button>
+          <button class="theme-card" data-theme="synthwave">
+            <div class="theme-preview synthwave-preview"></div>
+            <span class="theme-name">Synthwave</span>
+            <span class="theme-desc">Atardecer 80s</span>
+          </button>
+          <button class="theme-card" data-theme="chrome-crimson">
+            <div class="theme-preview chrome-crimson-preview"></div>
+            <span class="theme-name">Chrome & Crimson</span>
+            <span class="theme-desc">Rojo industrial</span>
+          </button>
+          <button class="theme-card" data-theme="holo-glass">
+            <div class="theme-preview holo-glass-preview"></div>
+            <span class="theme-name">Holo Glass</span>
+            <span class="theme-desc">Holográfico</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="result-block">
+        <h3>Acerca de</h3>
+        <p class="settings-desc">Kuai Chinese v1.0 — Aprende chino rápido con Pinyin, traducciones y diccionario personal.</p>
+      </section>
     </main>
   </div>
 

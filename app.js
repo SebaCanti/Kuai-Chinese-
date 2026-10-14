@@ -8,6 +8,39 @@
   let longPressTimer = null;
   const LONG_PRESS_MS = 550;
 
+  // ---------- Themes ----------
+  const THEME_KEY = 'kuai_theme';
+  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
+
+  function getSavedTheme() {
+    const t = localStorage.getItem(THEME_KEY);
+    return THEMES.includes(t) ? t : 'neon-tokyo';
+  }
+
+  function applyTheme(theme) {
+    if (!THEMES.includes(theme)) theme = 'neon-tokyo';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    // Update theme-color meta for mobile status bar
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const colors = {
+      'neon-tokyo': '#0a0a12',
+      'matrix-soft': '#05080a',
+      'synthwave': '#1a0a2e',
+      'chrome-crimson': '#0e1015',
+      'holo-glass': '#0f0c29'
+    };
+    if (meta) meta.content = colors[theme] || '#0a0a12';
+    // Highlight active card
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.classList.toggle('active', card.dataset.theme === theme);
+    });
+  }
+
+  // Apply saved theme immediately
+  applyTheme(getSavedTheme());
+
+
   // ---------- DOM ----------
   const $ = (sel) => document.querySelector(sel);
   const pasteZone = $('#paste-zone');
@@ -403,6 +436,10 @@
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${name}`));
     if (name === 'history') renderHistory();
     if (name === 'dictionary') renderDictionary();
+    if (name === 'settings') {
+      // refresh active theme highlight
+      applyTheme(getSavedTheme());
+    }
   }
 
   // ---------- Clipboard long-press ----------
@@ -498,7 +535,16 @@
     }
   });
 
+  // Theme cards
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', () => {
+      applyTheme(card.dataset.theme);
+      showToast('Tema aplicado ✓');
+    });
+  });
+
   // Initial
   renderHistory();
   renderDictionary();
+  applyTheme(getSavedTheme());
 })();
