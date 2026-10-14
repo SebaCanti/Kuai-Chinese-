@@ -188,17 +188,50 @@
   }
 
   // ---------- Translation (free Google endpoint) ----------
+  // Fetch with a time limit so a stalled request on a phone never hangs the app.
+  async function fetchWithTimeout(url, ms = 12000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(url, { signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function translateText(text, targetLang) {
     if (!text || !text.trim()) return '';
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
     try {
-      const res = await fetch(url);
+      const res = await fetchWithTimeout(url);
       const data = await res.json();
       return data[0].map(part => part[0]).join('');
     } catch (err) {
       console.error('Translation error:', err);
       return '[Translation error]';
     }
+  }
+
+  // Translates a list of words with one request (one word per line).
+  // Falls back to a few requests at a time if the lines don't line up.
+  async function translateWords(words, targetLang) {
+    const unique = [...new Set(words)];
+    const out = {};
+    if (!unique.length) return out;
+    const joined = await translateText(unique.join('\n'), targetLang);
+    // Network failure or timeout: don't retry word by word, just leave them blank.
+    if (joined === '[Translation error]') return out;
+    const lines = joined.split('\n').map(l => l.trim());
+    if (lines.length === unique.length) {
+      unique.forEach((w, i) => { out[w] = lines[i]; });
+      return out;
+    }
+    for (let i = 0; i < unique.length; i += 4) {
+      const batch = unique.slice(i, i + 4);
+      const res = await Promise.all(batch.map(w => translateText(w, targetLang)));
+      batch.forEach((w, j) => { out[w] = res[j]; });
+    }
+    return out;
   }
 
   // ---------- Chinese segmentation + Pinyin ----------
@@ -227,9 +260,12 @@
 
     // Fallback: one entry per character
     try {
+      // pinyin() returns one entry per character, punctuation included,
+      // so pair them up before dropping the non-Chinese ones.
       const pyArr = pinyinFn(text, { type: 'array', toneType: 'symbol' });
-      const chars = Array.from(text).filter(c => /[\u4e00-\u9fff\u3400-\u4dbf]/.test(c));
-      return chars.map((c, i) => ({ origin: c, result: pyArr[i] || c }));
+      return Array.from(text)
+        .map((c, i) => ({ origin: c, result: pyArr[i] || c }))
+        .filter(s => /[\u4e00-\u9fff\u3400-\u4dbf]/.test(s.origin));
     } catch (e) {
       return Array.from(text)
         .filter(c => /[\u4e00-\u9fff\u3400-\u4dbf]/.test(c))
@@ -265,12 +301,12 @@
         // Chinese → Pinyin + English
         const segs = segmentAndPinyin(text);
         result.pinyinFull = segs.map(s => s.result).join(' ');
-        result.englishFull = await translateText(text, 'en');
-
-        result.words = await Promise.all(segs.map(async (s) => {
-          const en = await translateText(s.origin, 'en');
-          return { char: s.origin, pinyin: s.result, en, es: '' };
-        }));
+        const [englishFull, meanings] = await Promise.all([
+          translateText(text, 'en'),
+          translateWords(segs.map(s => s.origin), 'en')
+        ]);
+        result.englishFull = englishFull;
+        result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
       } else {
         // English / Spanish → Chinese + Pinyin
         const chineseText = await translateText(text, 'zh-CN');
@@ -280,16 +316,17 @@
         const segs = segmentAndPinyin(chineseText);
         result.pinyinFull = segs.map(s => s.result).join(' ');
 
-        result.words = await Promise.all(segs.map(async (s) => {
-          const en = await translateText(s.origin, 'en');
-          return { char: s.origin, pinyin: s.result, en, es: '' };
-        }));
+        const meanings = await translateWords(segs.map(s => s.origin), 'en');
+        result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
       }
 
       currentResult = result;
       meaningLang = 'en';
       renderResults();
       addToHistory(result);
+      if ([result.englishFull, result.chineseFull].includes('[Translation error]')) {
+        showToast('Translation failed. Check your connection and try again.');
+      }
     } catch (err) {
       console.error(err);
       showToast('Something went wrong. Please try again.');
@@ -432,11 +469,9 @@
     meaningLang = meaningLang === 'en' ? 'es' : 'en';
 
     if (meaningLang === 'es') {
-      for (const w of currentResult.words) {
-        if (!w.es) {
-          w.es = await translateText(w.char, 'es');
-        }
-      }
+      const missing = currentResult.words.filter(w => !w.es).map(w => w.char);
+      const meanings = await translateWords(missing, 'es');
+      currentResult.words.forEach(w => { if (!w.es) w.es = meanings[w.char] || ''; });
     }
     renderWordTable();
   }
