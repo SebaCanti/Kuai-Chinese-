@@ -1,13 +1,13 @@
 {
   "name": "Kuai Chinese",
   "short_name": "Kuai",
-  "description": "Aprende chino rápido: pega texto, obtén Pinyin, traducciones palabra por palabra y estudia con tu diccionario personal.",
+  "description": "Learn Chinese fast: paste text, get Pinyin, word-by-word translations and study with your personal dictionary.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8f9fa",
   "theme_color": "#e63946",
-  "lang": "es",
+  "lang": "en",
   "icons": [
     {
       "src": "icon-192.png",

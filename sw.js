@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kuai-chinese-v1';
+const CACHE_NAME = 'kuai-chinese-v3';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
+  './styles.css?v=3',
+  './app.js?v=3',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'

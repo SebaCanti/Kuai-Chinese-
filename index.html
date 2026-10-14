@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="matrix-soft">
+<html lang="en" data-theme="matrix-soft">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#05080a" />
-  <meta name="description" content="Kuai Chinese - Aprende chino rápido: pega texto, obtén Pinyin, traducciones y estudia con tu diccionario personal." />
+  <meta name="description" content="Kuai Chinese - Learn Chinese fast: paste text, get Pinyin and translations, and study with your personal dictionary." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Kuai Chinese 快中文</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
+  <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
+  <link rel="stylesheet" href="styles.css?v=3" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -19,6 +22,7 @@
     <!-- Header -->
     <header class="header">
       <div class="header-top">
+        <div class="brand"></div>
         <h1 class="logo">
           <span class="logo-en">KUAI CHINESE</span>
           <span class="logo-zh">快中文</span>
@@ -28,85 +32,89 @@
         </div>
       </div>
       <nav class="nav-tabs">
-        <button class="tab active" data-tab="translate">Traducir</button>
-        <button class="tab" data-tab="history">Historial</button>
-        <button class="tab" data-tab="dictionary">Diccionario</button>
-        <button class="tab" data-tab="settings">Ajustes</button>
+        <button class="tab active" data-tab="translate">Translate</button>
+        <button class="tab" data-tab="history">History</button>
+        <button class="tab" data-tab="dictionary">Dictionary</button>
+        <button class="tab" data-tab="settings">Settings</button>
       </nav>
     </header>
 
     <!-- Translate Tab -->
     <main id="tab-translate" class="tab-content active">
       <div id="paste-zone" class="paste-zone">
-        <!-- Animated nerd character -->
-        <div class="nerd-scene" aria-hidden="true">
-          <div class="nerd-boy">
-            <div class="nerd-head">
-              <div class="nerd-hair"></div>
-              <div class="nerd-face">
-                <div class="nerd-glasses">
-                  <span class="lens"></span>
-                  <span class="lens"></span>
-                </div>
-                <div class="nerd-eyes">
-                  <span class="eye"></span>
-                  <span class="eye"></span>
-                </div>
-              </div>
-            </div>
-            <div class="nerd-body">
-              <div class="nerd-arm left"></div>
-              <div class="nerd-torso"></div>
-              <div class="nerd-arm right typing-arm"></div>
-            </div>
-          </div>
-          <div class="nerd-desk">
-            <div class="monitor">
-              <div class="screen">
-                <div class="screen-lines"></div>
-                <div class="cursor-blink">_</div>
-              </div>
-            </div>
-            <div class="keyboard">
-              <div class="keys"></div>
-            </div>
-          </div>
-        </div>
+        <!-- Animated nerd kid with headphones, typing at a retro CRT, coffee on the desk -->
+        <svg class="nerd-scene ns" viewBox="0 0 240 150" aria-hidden="true">
+          <polygon class="beam" points="88,62 88,100 140,72 140,40"/>
+          <rect class="fb" x="4" y="114" width="150" height="6" rx="2"/>
+          <path class="ln dim" d="M12 120 V144 M146 120 V144"/>
+          <polygon class="fb" points="36,54 20,60 20,98 36,104"/>
+          <polygon class="fb" points="36,54 88,60 88,100 36,104"/>
+          <clipPath id="c2"><polygon points="42,61 82,65 82,94 42,97"/></clipPath>
+          <g clip-path="url(#c2)"><g transform="translate(0 -5.9) skewY(8)"><g class="scroll"><path class="cl" d="M46 62 H70"/>
+        <path class="cl" d="M52 68 H70"/>
+        <path class="cl hl" d="M52 74 H79"/>
+        <path class="cl" d="M58 80 H70"/>
+        <path class="cl" d="M46 86 H61"/>
+        <path class="cl" d="M52 92 H73"/>
+        <path class="cl" d="M46 98 H70"/>
+        <path class="cl" d="M52 104 H70"/>
+        <path class="cl hl" d="M52 110 H79"/>
+        <path class="cl" d="M58 116 H70"/>
+        <path class="cl" d="M46 122 H61"/>
+        <path class="cl" d="M52 128 H73"/></g></g></g>
+          <polygon class="fb" points="40,104 84,100 90,114 34,114"/>
+          <circle class="led" cx="80" cy="97" r="1.4"/>
+          <path class="handle" d="M8 100 q-7 0 -7 6 q0 6 7 6"/><rect class="cup" x="8" y="96" width="14" height="18" rx="2.5"/><path class="band" d="M8 102 h14"/><g class="steam"><path class="s1" d="M10 92 q-3 -6 0 -12 q3 -6 0 -12"/><path class="s2" d="M15 92 q-3 -7 0 -14 q3 -7 0 -14"/><path class="s3" d="M20 92 q-3 -6 0 -12 q3 -6 0 -12"/></g>
+          <path class="arm far" d="M176 92 Q156 106 128 109"/><circle class="hand far hb" cx="126" cy="109" r="4"/>
+          <path class="ln dim" d="M196 70 Q204 98 198 126 M176 126 H212 M194 126 V142 M180 142 H210"/>
+          <path class="fb" d="M140 128 C138 100 148 80 164 78 C180 80 190 98 188 128 Z"/>
+          <circle class="ff" cx="182" cy="54" r="4.5"/>
+          <circle class="ff" cx="161" cy="51" r="21"/>
+          <path class="solid" d="M141 46 Q142 26 164 28 Q186 30 184 54 Q178 44 172 40 Q166 34 158 38 Q150 34 141 46 Z"/>
+          <circle class="eye" cx="148" cy="54" r="2"/><circle class="eye" cx="165" cy="54" r="2"/>
+          <circle class="glass" cx="148" cy="54" r="7"/><circle class="glass" cx="166" cy="54" r="8"/>
+          <path class="ln" d="M155 53 Q157 51 158 53 M174 53 L182 50"/>
+          <path class="ln mouth" d="M147 66 Q152 69 157 66"/>
+          <path class="phones" d="M140 40 Q144 22 162 22 Q184 22 183 46"/>
+          <rect class="cupL" x="176" y="44" width="12" height="19" rx="5"/>
+          <path class="arm" d="M150 92 Q136 108 116 112"/><circle class="hand ha" cx="114" cy="111" r="4.5"/>
+          <polygon class="fb" points="98,114 138,114 136,110 100,110"/>
+        </svg>
 
-        <p class="paste-hint">MANTÉN PRESIONADO PARA PEGAR</p>
-        <p class="paste-sub">o toca para editar / pegar manualmente</p>
-        <textarea id="input-text" placeholder="Pega o escribe aquí el texto en chino, inglés o español..." rows="3"></textarea>
-        <button id="btn-translate" class="btn primary">TRADUCIR AHORA</button>
+        <p class="paste-hint">&gt; PRESS AND HOLD TO PASTE</p>
+        <p class="paste-sub">or tap the box to type / paste manually</p>
+        <textarea id="input-text" placeholder="Paste or type Chinese, English or Spanish text here..." rows="3"></textarea>
+        <button id="btn-translate" class="btn primary">TRANSLATE NOW</button>
       </div>
 
       <div id="loading" class="loading hidden">
         <div class="spinner"></div>
-        <p>Traduciendo...</p>
+        <p>TRANSLATING…</p>
       </div>
 
       <div id="results" class="results hidden">
         <section class="result-block">
-          <h3>ORIGINAL</h3>
+          <h3>&gt; ORIGINAL</h3>
           <div id="original-text" class="text-box clear-text"></div>
         </section>
 
         <section class="result-block">
-          <h3 id="full-title">TRADUCCIÓN COMPLETA</h3>
+          <h3 id="full-title">&gt; FULL TRANSLATION</h3>
           <div id="full-pinyin" class="text-box pinyin"></div>
           <div id="full-english" class="text-box clear-text"></div>
           <div id="full-spanish" class="text-box clear-text hidden"></div>
-          <button id="btn-show-spanish" class="btn secondary small">Mostrar en español</button>
+          <button id="btn-show-spanish" class="btn secondary small">Show in Spanish</button>
         </section>
 
         <section class="result-block">
-          <h3>PALABRA POR PALABRA</h3>
+          <h3>&gt; WORD BY WORD</h3>
           <div class="word-table-wrapper">
             <table id="word-table" class="word-table">
               <thead>
                 <tr>
-                  <th>CARÁCTER</th>
+                  <th>CHARACTER</th>
                   <th>PINYIN</th>
-                  <th id="th-meaning">INGLÉS</th>
+                  <th id="th-meaning">ENGLISH</th>
                   <th></th>
                 </tr>
               </thead>
@@ -114,8 +122,8 @@
             </table>
           </div>
           <div class="actions-row">
-            <button id="btn-toggle-lang" class="btn secondary small">Cambiar a español</button>
-            <button id="btn-save-all" class="btn primary small">Guardar todas</button>
+            <button id="btn-toggle-lang" class="btn secondary small">Switch to Spanish</button>
+            <button id="btn-save-all" class="btn primary small">Save all</button>
           </div>
         </section>
       </div>
@@ -124,71 +132,71 @@
     <!-- History Tab -->
     <main id="tab-history" class="tab-content">
       <div class="section-header">
-        <h2>HISTORIAL</h2>
-        <button id="btn-clear-history" class="btn danger small">Borrar todo</button>
+        <h2>&gt; HISTORY</h2>
+        <button id="btn-clear-history" class="btn danger small">Clear all</button>
       </div>
       <div id="history-list" class="list-container">
-        <p class="empty-state">Aún no hay frases en el historial.</p>
+        <p class="empty-state">No phrases in your history yet.</p>
       </div>
     </main>
 
     <!-- Dictionary Tab -->
     <main id="tab-dictionary" class="tab-content">
       <div class="section-header">
-        <h2>MI DICCIONARIO</h2>
-        <button id="btn-clear-dict" class="btn danger small">Borrar todo</button>
+        <h2>&gt; MY DICTIONARY</h2>
+        <button id="btn-clear-dict" class="btn danger small">Clear all</button>
       </div>
       <div id="dict-list" class="list-container">
-        <p class="empty-state">Aún no has guardado palabras.</p>
+        <p class="empty-state">You haven’t saved any words yet.</p>
       </div>
     </main>
 
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>AJUSTES</h2>
+        <h2>&gt; SETTINGS</h2>
       </div>
 
       <section class="result-block">
-        <h3>TEMA VISUAL</h3>
-        <p class="settings-desc">Elige el estilo cyberpunk. Se guarda automáticamente.</p>
+        <h3>&gt; VISUAL THEME</h3>
+        <p class="settings-desc">Pick your cyberpunk style. It is saved automatically.</p>
         <div class="theme-grid" id="theme-grid">
           <button class="theme-card" data-theme="neon-tokyo">
             <div class="theme-preview neon-tokyo-preview"></div>
             <span class="theme-name">Neon Tokyo</span>
-            <span class="theme-desc">Rosa + cian neón</span>
+            <span class="theme-desc">Neon pink + cyan</span>
           </button>
           <button class="theme-card active" data-theme="matrix-soft">
             <div class="theme-preview matrix-soft-preview"></div>
             <span class="theme-name">Matrix Soft</span>
-            <span class="theme-desc">Verde digital</span>
+            <span class="theme-desc">Digital green</span>
           </button>
           <button class="theme-card" data-theme="synthwave">
             <div class="theme-preview synthwave-preview"></div>
             <span class="theme-name">Synthwave</span>
-            <span class="theme-desc">Atardecer 80s</span>
+            <span class="theme-desc">80s sunset</span>
           </button>
           <button class="theme-card" data-theme="chrome-crimson">
             <div class="theme-preview chrome-crimson-preview"></div>
             <span class="theme-name">Chrome & Crimson</span>
-            <span class="theme-desc">Rojo industrial</span>
+            <span class="theme-desc">Industrial red</span>
           </button>
           <button class="theme-card" data-theme="holo-glass">
             <div class="theme-preview holo-glass-preview"></div>
             <span class="theme-name">Holo Glass</span>
-            <span class="theme-desc">Holográfico</span>
+            <span class="theme-desc">Holographic</span>
           </button>
         </div>
       </section>
 
       <section class="result-block">
-        <h3>ACERCA DE</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.1 — Aprende chino rápido con Pinyin, traducciones y diccionario personal.</p>
+        <h3>&gt; ABOUT</h3>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.2 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

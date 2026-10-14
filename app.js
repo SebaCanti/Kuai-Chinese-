@@ -10,7 +10,7 @@
 
   // ---------- Themes ----------
   const THEME_KEY = 'kuai_theme';
-  const THEMES = ['matrix-soft', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
+  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
 
   function getSavedTheme() {
     const t = localStorage.getItem(THEME_KEY);
@@ -24,7 +24,7 @@
     // Update theme-color meta for mobile status bar
     const meta = document.querySelector('meta[name="theme-color"]');
     const colors = {
-      'matrix-soft': '#0a0a12',
+      'neon-tokyo': '#0a0a12',
       'matrix-soft': '#05080a',
       'synthwave': '#1a0a2e',
       'chrome-crimson': '#0e1015',
@@ -105,7 +105,7 @@
   function addToDict(word) {
     const dict = getDict();
     if (dict.some(d => d.char === word.char)) {
-      showToast('Ya está en el diccionario');
+      showToast('Already in your dictionary');
       return false;
     }
     dict.unshift({
@@ -118,7 +118,7 @@
     });
     saveDict(dict);
     renderDictionary();
-    showToast('Guardado en diccionario ✓');
+    showToast('Saved to dictionary ✓');
     return true;
   }
 
@@ -139,7 +139,7 @@
       return data[0].map(part => part[0]).join('');
     } catch (err) {
       console.error('Translation error:', err);
-      return '[Error de traducción]';
+      return '[Translation error]';
     }
   }
 
@@ -183,7 +183,7 @@
   async function processText(rawText) {
     const text = (rawText || '').trim();
     if (!text) {
-      showToast('No hay texto para traducir');
+      showToast('Nothing to translate');
       return;
     }
 
@@ -234,7 +234,7 @@
       addToHistory(result);
     } catch (err) {
       console.error(err);
-      showToast('Error al procesar. Intenta de nuevo.');
+      showToast('Something went wrong. Please try again.');
     } finally {
       loadingEl.classList.add('hidden');
       btnTranslate.disabled = false;
@@ -255,8 +255,8 @@
       fullSpanish.classList.add('hidden');
       fullSpanish.textContent = '';
       btnShowSpanish.classList.remove('hidden');
-      btnShowSpanish.textContent = 'Mostrar en español';
-      $('#full-title').textContent = 'Traducción completa';
+      btnShowSpanish.textContent = 'Show in Spanish';
+      $('#full-title').textContent = '> Full translation';
     } else {
       // Source EN/ES → show Chinese + Pinyin
       fullPinyin.textContent = currentResult.pinyinFull;
@@ -265,7 +265,7 @@
       fullEnglish.classList.remove('hidden');
       fullSpanish.classList.add('hidden');
       btnShowSpanish.classList.add('hidden');
-      $('#full-title').textContent = 'Traducción al chino';
+      $('#full-title').textContent = '> Chinese translation';
     }
 
     renderWordTable();
@@ -275,8 +275,8 @@
   function renderWordTable() {
     if (!currentResult) return;
     wordTbody.innerHTML = '';
-    thMeaning.textContent = meaningLang === 'en' ? 'Inglés' : 'Español';
-    btnToggleLang.textContent = meaningLang === 'en' ? 'Cambiar a español' : 'Cambiar a inglés';
+    thMeaning.textContent = meaningLang === 'en' ? 'English' : 'Spanish';
+    btnToggleLang.textContent = meaningLang === 'en' ? 'Switch to Spanish' : 'Switch to English';
 
     currentResult.words.forEach((w, idx) => {
       const tr = document.createElement('tr');
@@ -288,7 +288,7 @@
         <td class="word-pinyin">${escapeHtml(w.pinyin)}</td>
         <td class="word-meaning">${escapeHtml(meaning)}</td>
         <td>
-          <button class="btn icon-btn ${saved ? 'saved' : ''}" data-idx="${idx}" title="Guardar">
+          <button class="btn icon-btn ${saved ? 'saved' : ''}" data-idx="${idx}" title="Save">
             ${saved ? '✓' : '＋'}
           </button>
         </td>
@@ -315,14 +315,14 @@
   async function showSpanishFull() {
     if (!currentResult || !currentResult.isChinese) return;
     if (!currentResult.spanishFull) {
-      btnShowSpanish.textContent = 'Traduciendo…';
+      btnShowSpanish.textContent = 'Translating…';
       btnShowSpanish.disabled = true;
       currentResult.spanishFull = await translateText(currentResult.original, 'es');
       btnShowSpanish.disabled = false;
     }
     fullSpanish.textContent = currentResult.spanishFull;
     fullSpanish.classList.remove('hidden');
-    btnShowSpanish.textContent = 'Ocultar español';
+    btnShowSpanish.textContent = 'Hide Spanish';
   }
 
   // ---------- Toggle meaning language ----------
@@ -344,7 +344,7 @@
   function renderHistory() {
     const hist = getHistory();
     if (hist.length === 0) {
-      historyList.innerHTML = '<p class="empty-state">Aún no hay frases en el historial.</p>';
+      historyList.innerHTML = '<p class="empty-state">No phrases in your history yet.</p>';
       return;
     }
     historyList.innerHTML = hist.map(item => `
@@ -352,10 +352,10 @@
         <div class="original">${escapeHtml(item.original)}</div>
         ${item.pinyin ? `<div class="pinyin-line">${escapeHtml(item.pinyin)}</div>` : ''}
         ${item.chinese ? `<div class="meta">→ ${escapeHtml(item.chinese)}</div>` : ''}
-        <div class="meta">${formatDate(item.date)} · ${item.isChinese ? 'Chino' : 'EN/ES → ZH'}</div>
+        <div class="meta">${formatDate(item.date)} · ${item.isChinese ? 'Chinese' : 'EN/ES → ZH'}</div>
         <div class="actions">
-          <button class="btn secondary small reuse-btn">Usar de nuevo</button>
-          <button class="btn danger small delete-hist">Eliminar</button>
+          <button class="btn secondary small reuse-btn">Use again</button>
+          <button class="btn danger small delete-hist">Delete</button>
         </div>
       </div>
     `).join('');
@@ -379,7 +379,7 @@
   function renderDictionary() {
     const dict = getDict();
     if (dict.length === 0) {
-      dictList.innerHTML = '<p class="empty-state">Aún no has guardado palabras.</p>';
+      dictList.innerHTML = '<p class="empty-state">You haven’t saved any words yet.</p>';
       return;
     }
     dictList.innerHTML = dict.map(item => `
@@ -389,7 +389,7 @@
           <div class="pinyin">${escapeHtml(item.pinyin)}</div>
           <div class="meaning">${escapeHtml(item.en)}${item.es ? ' · ' + escapeHtml(item.es) : ''}</div>
         </div>
-        <button class="remove-btn" title="Eliminar">×</button>
+        <button class="remove-btn" title="Delete">×</button>
       </div>
     `).join('');
 
@@ -398,7 +398,7 @@
         const newDict = getDict().filter(d => d.id !== dict[i].id);
         saveDict(newDict);
         renderDictionary();
-        showToast('Eliminado');
+        showToast('Deleted');
       });
     });
   }
@@ -415,7 +415,7 @@
 
   function formatDate(iso) {
     const d = new Date(iso);
-    return d.toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('en', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
 
   function showToast(msg) {
@@ -448,14 +448,14 @@
       const text = await navigator.clipboard.readText();
       if (text && text.trim()) {
         inputText.value = text.trim();
-        showToast('Texto pegado ✓');
+        showToast('Text pasted ✓');
         processText(text.trim());
       } else {
-        showToast('Portapapeles vacío');
+        showToast('Clipboard is empty');
       }
     } catch (err) {
       console.warn('Clipboard error:', err);
-      showToast('No se pudo leer el portapapeles. Pega manualmente');
+      showToast('Couldn’t read the clipboard. Paste manually');
       inputText.focus();
     }
   }
@@ -501,7 +501,7 @@
       await showSpanishFull();
     } else {
       fullSpanish.classList.add('hidden');
-      btnShowSpanish.textContent = 'Mostrar en español';
+      btnShowSpanish.textContent = 'Show in Spanish';
     }
   });
 
@@ -514,24 +514,24 @@
       if (!w.es) w.es = await translateText(w.char, 'es');
       if (addToDict(w)) added++;
     }
-    if (added > 0) showToast(`${added} palabras guardadas`);
-    else showToast('Todas ya estaban guardadas');
+    if (added > 0) showToast(`${added} words saved`);
+    else showToast('All words were already saved');
     renderWordTable();
   });
 
   btnClearHistory.addEventListener('click', () => {
-    if (confirm('¿Borrar todo el historial?')) {
+    if (confirm('Clear your whole history?')) {
       saveHistory([]);
       renderHistory();
-      showToast('Historial borrado');
+      showToast('History cleared');
     }
   });
 
   btnClearDict.addEventListener('click', () => {
-    if (confirm('¿Borrar todo el diccionario?')) {
+    if (confirm('Clear your whole dictionary?')) {
       saveDict([]);
       renderDictionary();
-      showToast('Diccionario borrado');
+      showToast('Dictionary cleared');
     }
   });
 
@@ -541,7 +541,7 @@
     const el = document.getElementById('clock');
     if (!el) return;
     const now = new Date();
-    el.textContent = now.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false });
+    el.textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
   updateClock();
   setInterval(updateClock, 10000);
@@ -550,7 +550,7 @@
   document.querySelectorAll('.theme-card').forEach(card => {
     card.addEventListener('click', () => {
       applyTheme(card.dataset.theme);
-      showToast('Tema aplicado ✓');
+      showToast('Theme applied ✓');
     });
   });
 

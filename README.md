@@ -1,63 +1,70 @@
 # 快 Kuai Chinese
 
-PWA para aprender chino de forma rápida.
+A PWA to learn Chinese fast.
 
-## Cómo usarla
+## How to use it
 
-### En el celular (recomendado)
+### On your phone (recommended)
 
-1. Abre el archivo `index.html` en el navegador de tu teléfono (Chrome, Safari, Edge…).
-   - Lo más fácil: sube la carpeta a un hosting gratuito (Netlify, GitHub Pages, Vercel) o usa un servidor local.
-2. **Instalar como app**:
-   - **Android (Chrome)**: menú ⋮ → “Instalar aplicación” o “Añadir a la pantalla de inicio”.
-   - **iPhone (Safari)**: botón Compartir → “Añadir a pantalla de inicio”.
-3. Una vez instalada funciona como una app nativa (pantalla completa, icono propio).
+1. Open `index.html` in your phone's browser (Chrome, Safari, Edge…).
+   - Easiest: host the folder for free (Netlify, GitHub Pages, Vercel) or use a local server.
+2. **Install it as an app**:
+   - **Android (Chrome)**: menu ⋮ → "Install app" or "Add to Home screen".
+   - **iPhone (Safari)**: Share button → "Add to Home Screen".
+3. Once installed it works like a native app (full screen, its own icon).
 
-### Uso diario
+### Daily use
 
-1. Copia cualquier frase (en chino, inglés o español).
-2. En la app **mantén presionado** el cuadro grande → se pega automáticamente y se traduce.
-3. También puedes pegar manualmente o escribir y pulsar “Traducir ahora”.
+1. Copy any phrase (Chinese, English or Spanish).
+2. In the app, **press and hold** the big box → it pastes and translates automatically.
+3. You can also paste or type manually and press "Translate now".
 
-### Qué hace según el idioma
+### What it does depending on the language
 
-| Texto pegado | Resultado |
-|--------------|-----------|
-| **Chino** | Pinyin completo + traducción al inglés + tabla palabra por palabra (Pinyin + inglés). Botón para ver también en español. |
-| **Inglés o Español** | Traducción completa al chino + Pinyin + tabla palabra por palabra. |
+| Pasted text | Result |
+|-------------|--------|
+| **Chinese** | Full Pinyin + English translation + word-by-word table (Pinyin + English). Button to also see it in Spanish. |
+| **English or Spanish** | Full Chinese translation + Pinyin + word-by-word table. |
 
-- Los compuestos chinos (ej. 北京大学) se intentan mantener juntos.
-- Puedes guardar palabras individuales o todas en tu **diccionario personal**.
-- Cada frase queda en el **historial** para revisarla después.
+- Chinese compounds (e.g. 北京大学) are kept together where possible.
+- You can save single words, or all of them, to your **personal dictionary**.
+- Every phrase is kept in your **history** to review later.
 
-## Archivos
+## Look and feel
+
+- UI uses the same CRT terminal format as Kuai Temperature: `VT323` for the interface and `Noto Sans SC` for the 快中文 logo, with scanlines and `[ BRACKETED ]` buttons.
+- Study text (input, translations, characters, Pinyin and meanings) stays in a plain monospace font so it is easy to read.
+- The animation in the middle is an inline SVG: a nerd kid with headphones typing at a retro CRT, with his coffee steaming on the desk.
+
+## Files
 
 ```
 kuai-chinese/
-├── index.html      ← abre este
+├── index.html      ← open this
 ├── styles.css
 ├── app.js
-├── manifest.json   ← hace que sea instalable
-├── sw.js           ← funciona offline (app shell)
+├── manifest.json   ← makes it installable
+├── sw.js           ← works offline (app shell)
 ├── icon-192.png
 ├── icon-512.png
 └── README.md
 ```
 
-## Notas técnicas
+## Technical notes
 
-- Traducciones: endpoint gratuito de Google Translate (sin API key).
-- Pinyin y segmentación: librería `pinyin-pro`.
-- Datos (historial y diccionario) se guardan solo en tu dispositivo (`localStorage`).
-- Necesita HTTPS (o localhost) para poder leer el portapapeles.
+- Translations: free Google Translate endpoint (no API key).
+- Pinyin and segmentation: `pinyin-pro` library.
+- Data (history and dictionary) is stored only on your device (`localStorage`).
+- Needs HTTPS (or localhost) to read the clipboard.
+- When changing `styles.css` or `app.js`, bump the `?v=` in `index.html` and `sw.js` and the `CACHE_NAME` in `sw.js` so installed apps pick up the new files.
 
-## Servidor local rápido
+## Quick local server
 
 ```bash
 cd kuai-chinese
 npx serve .
-# o
+# or
 python3 -m http.server 8080
 ```
 
-Luego abre `http://localhost:8080` en el navegador del celular (misma red Wi-Fi).
+Then open `http://localhost:8080` in your phone's browser (same Wi-Fi network).
