@@ -1348,3 +1348,17 @@ body::after {
   .logo { font-size: 26px; gap: 8px; }
   .tab { font-size: 20px; letter-spacing: 1px; padding: 10px 4px; }
 }
+
+/* ---- Sync settings ---- */
+.sync-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  font-family: var(--study-font);
+  font-size: 16px;
+}
+.sync-input:focus { outline: none; border-color: var(--primary); }
+.sync-link { color: var(--primary); }
+#sync-connected { margin-top: 10px; }
