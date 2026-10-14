@@ -77,7 +77,7 @@ Then open `http://localhost:8080` in your phone's browser (same Wi-Fi network).
 
 ## Word meanings and compound words
 
-`cedict.txt` is a compact word list built from [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cc-cedict) (CC BY-SA 4.0): one `word<TAB>meaning` per line, words up to 4 characters. The app splits Chinese text by longest match against it, so compound words like 咳嗽 or 一点点 stay together, and takes the word-by-word meanings from it without needing the network. Google Translate is only used for the full sentence and for words missing from the list.
+`cedict.txt` is a compact word list built from [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cc-cedict) (CC BY-SA 4.0): one `word<TAB>sense1|sense2|...` per line, words up to 4 characters. The word table picks the sense that matches the full English translation (想 → "to miss" in 我想你了, "to want" in 不想让你花钱买), and splits a compound into its characters when only they fit the sentence (不想 → 不 + 想). The app splits Chinese text by longest match against it, so compound words like 咳嗽 or 一点点 stay together, and takes the word-by-word meanings from it without needing the network. Google Translate is only used for the full sentence and for words missing from the list.
 
 ## Sync between devices
 

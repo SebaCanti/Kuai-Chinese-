@@ -290,7 +290,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=12', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=13', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -330,18 +330,63 @@
     return out;
   }
 
-  // Meanings from the word list first; Google only for words it doesn't have.
-  async function wordMeanings(words) {
-    const dict = await loadCedict();
-    const out = {};
-    const missing = [];
-    words.forEach(w => {
-      if (dict && dict.has(w)) out[w] = dict.get(w);
-      else missing.push(w);
-    });
-    if (missing.length) Object.assign(out, await translateWords(missing, 'en'));
-    return out;
+  // ---------- Word meanings that fit the sentence ----------
+  // The word list holds several senses per word ("to think|to believe|to want").
+  // We pick the sense whose words appear in the sentence's English translation,
+  // so 想 in "Don't want you to spend money" reads "to want", not "to think".
+  const STOP = new Set(['a', 'an', 'the', 'to', 'of', 'sb', 'sth', 'be', 'is', 'are', 'it', 'on', 'in', 'at',
+    'for', 'and', 'or', 'with', 'as', 'by', 'do', 'one', 'that', 'this', 'etc', 'used', 'something', 'someone']);
+  function stem(w) {
+    if (w.length > 4) return w.replace(/(ing|ed|es|s)$/, '');
+    return w;
   }
+  function contentWords(str) {
+    return (str || '').toLowerCase()
+      .replace(/n['’]t\b/g, ' not').replace(/['’](s|re|m|ll|ve|d)\b/g, '')
+      .split(/[^a-z]+/).filter(w => w && !STOP.has(w)).map(stem);
+  }
+  function pickSense(senses, context) {
+    let best = { text: senses[0], score: 0 };
+    senses.forEach(sense => {
+      const score = contentWords(sense).filter(w => context.has(w)).length;
+      if (score > best.score) best = { text: sense, score };
+    });
+    return best;
+  }
+
+  // Turns segments into table rows with a meaning each. A compound whose senses
+  // don't fit the sentence (不想 "unexpectedly") is split into its characters
+  // when those do fit (不 "not" + 想 "to want").
+  async function wordsInContext(segs, englishText) {
+    const dict = await loadCedict();
+    const context = new Set(contentWords(englishText));
+    const rows = [];
+    const missing = [];
+    segs.forEach(s => {
+      const senses = dict && dict.get(s.origin);
+      if (!senses) {
+        rows.push({ char: s.origin, pinyin: s.result, en: null });
+        missing.push(s.origin);
+        return;
+      }
+      const pick = pickSense(senses.split('|'), context);
+      const chars = Array.from(s.origin);
+      if (pick.score === 0 && chars.length > 1 && chars.every(c => dict.has(c))) {
+        const parts = chars.map(c => ({ char: c, pick: pickSense(dict.get(c).split('|'), context) }));
+        if (parts.some(p => p.pick.score > 0)) {
+          parts.forEach(p => rows.push({ char: p.char, pinyin: wordPinyin(p.char), en: p.pick.text }));
+          return;
+        }
+      }
+      rows.push({ char: s.origin, pinyin: s.result, en: pick.text });
+    });
+    if (missing.length) {
+      const fromGoogle = await translateWords(missing, 'en');
+      rows.forEach(r => { if (r.en === null) r.en = fromGoogle[r.char] || ''; });
+    }
+    return rows.map(r => ({ ...r, es: '' }));
+  }
+
 
   // ---------- Chinese segmentation + Pinyin ----------
   function segmentAndPinyin(text) {
@@ -412,12 +457,8 @@
         await loadCedict();
         const segs = segmentAndPinyin(text);
         result.pinyinFull = segs.map(s => s.result).join(' ');
-        const [englishFull, meanings] = await Promise.all([
-          translateText(text, 'en'),
-          wordMeanings(segs.map(s => s.origin))
-        ]);
-        result.englishFull = englishFull;
-        result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
+        result.englishFull = await translateText(text, 'en');
+        result.words = await wordsInContext(segs, result.englishFull);
       } else {
         // English / Spanish → Chinese + Pinyin
         const chineseText = await translateText(text, 'zh-CN');
@@ -428,8 +469,7 @@
         const segs = segmentAndPinyin(chineseText);
         result.pinyinFull = segs.map(s => s.result).join(' ');
 
-        const meanings = await wordMeanings(segs.map(s => s.origin));
-        result.words = segs.map(s => ({ char: s.origin, pinyin: s.result, en: meanings[s.origin] || '', es: '' }));
+        result.words = await wordsInContext(segs, text);
       }
 
       currentResult = result;
