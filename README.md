@@ -27,7 +27,7 @@ A PWA to learn Chinese fast.
 | **English or Spanish** | Full Chinese translation + Pinyin + word-by-word table. |
 
 - Chinese compounds (e.g. 北京大学) are kept together where possible.
-- You can save single words, or all of them, to your **personal dictionary**, where they become flash cards: mark each one as Memorized (left column) or Not memorized (right column). New words sit in the middle.
+- You can save single words, or all of them, to your **personal dictionary**, where they become compact flash cards (tap a word to open it): mark each one as Memorized (left column) or Not memorized (right column). New words sit in the middle.
 - **Random** shows a saved word's characters and plays its audio; **Flip card** reveals the Pinyin, English meaning and the phrase you saved it from.
 - Every Chinese phrase and word has a 🔊 button to hear it.
 - Every phrase is kept in your **history** to review later.

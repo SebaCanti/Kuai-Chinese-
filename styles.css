@@ -1146,3 +1146,38 @@ body::after {
   .flash-btn { font-size: 14px; letter-spacing: 0; padding: 3px 2px; }
 }
 .quiz-actions .btn { font-size: 20px; padding: 8px 6px; white-space: nowrap; }
+
+/* ===== Compact dictionary: character chips, each column scrolls on its own ===== */
+.dict-col .dict-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 6px;
+  max-height: 52vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+}
+.chip {
+  font-family: var(--study-font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 6px 8px;
+  min-width: 40px;
+  max-width: 100%;
+  word-break: break-all;
+  background: var(--clear-bg);
+  color: var(--clear-text);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-shadow: none;
+}
+.chip:hover, .chip:focus-visible { border-color: var(--primary); outline: none; }
+.dict-col[data-status="known"] .chip { border-color: var(--success); }
+.dict-col[data-status="learning"] .chip { border-color: var(--danger); }
+.quiz-actions .btn:disabled { opacity: 0.3; }
