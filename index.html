@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -147,20 +147,19 @@
     <main id="tab-dictionary" class="tab-content">
       <div class="section-header">
         <h2>&gt; MY DICTIONARY</h2>
-        <button id="btn-clear-dict" class="btn danger small">Clear all</button>
       </div>
       <div id="dict-board" class="dict-board">
         <section class="dict-col" data-status="known">
-          <h3>MEMORIZED <span class="count" id="count-known">0</span></h3>
-          <div class="dict-cards" id="col-known"></div>
+          <h3>MEMORIZED</h3>
+          <button class="pile" id="pile-known" data-status="known" aria-label="Open memorized cards"></button>
         </section>
         <section class="dict-col" data-status="new">
           <h3>NEW <span class="count" id="count-new">0</span></h3>
           <div class="dict-cards" id="col-new"></div>
         </section>
         <section class="dict-col" data-status="learning">
-          <h3>NOT MEMORIZED <span class="count" id="count-learning">0</span></h3>
-          <div class="dict-cards" id="col-learning"></div>
+          <h3>NOT MEMORIZED</h3>
+          <button class="pile" id="pile-learning" data-status="learning" aria-label="Open not memorized cards"></button>
         </section>
       </div>
       <p id="dict-empty" class="empty-state">You haven’t saved any words yet.</p>
@@ -168,6 +167,18 @@
         <button id="btn-random" class="btn primary">Random</button>
       </div>
     </main>
+
+    <!-- Deck: the words in one pile, to study them one by one -->
+    <div id="deck" class="quiz hidden" role="dialog" aria-modal="true" aria-labelledby="deck-title">
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span id="deck-title">&gt; MEMORIZED</span>
+          <button id="deck-close" class="quiz-x" aria-label="Close">×</button>
+        </div>
+        <p class="deck-hint">Tap a word to flip it and change its status.</p>
+        <div id="deck-list" class="deck-list"></div>
+      </div>
+    </div>
 
     <!-- Random flash card quiz -->
     <div id="quiz" class="quiz hidden" role="dialog" aria-modal="true" aria-labelledby="quiz-title">
@@ -182,6 +193,7 @@
           <div id="quiz-meaning" class="quiz-meaning"></div>
           <div class="quiz-example-label">EXAMPLE</div>
           <div id="quiz-example" class="quiz-example"></div>
+          <div id="quiz-example-pinyin" class="quiz-example-pinyin"></div>
           <div id="quiz-example-en" class="quiz-example-en"></div>
         </div>
         <div class="quiz-actions">
@@ -191,6 +203,8 @@
         <div class="quiz-actions">
           <button id="quiz-known" class="btn small">Memorized</button>
           <button id="quiz-learning" class="btn small danger">Not memorized</button>
+        </div>
+        <div class="quiz-actions">
           <button id="quiz-next" class="btn small secondary">Next</button>
           <button id="quiz-delete" class="btn small secondary hidden">Delete</button>
         </div>
@@ -242,7 +256,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

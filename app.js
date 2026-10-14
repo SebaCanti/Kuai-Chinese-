@@ -63,7 +63,6 @@
   const speakOriginal = $('#speak-original');
   const speakFull = $('#speak-full');
   const btnClearHistory = $('#btn-clear-history');
-  const btnClearDict = $('#btn-clear-dict');
 
   // ---------- Storage helpers ----------
   const STORAGE_HISTORY = 'kuai_history';
@@ -437,6 +436,9 @@
     const item = dict.find(d => d.id === id);
     if (!item) return;
     item.status = status;
+    // The most recently moved card sits on top of its pile
+    dict.splice(dict.indexOf(item), 1);
+    dict.unshift(item);
     saveDict(dict);
     renderDictionary();
   }
@@ -453,15 +455,58 @@
     dictBoard.classList.toggle('hidden', dict.length === 0);
     $('#btn-random').disabled = dict.length === 0;
 
-    ['known', 'new', 'learning'].forEach(status => {
+    // New words: compact chips in the middle column
+    const fresh = dict.filter(d => d.status === 'new');
+    $('#count-new').textContent = fresh.length;
+    $('#col-new').innerHTML = fresh.map(chipHtml).join('');
+
+    // Memorized (left) and not memorized (right): a pile of stacked cards
+    ['known', 'learning'].forEach(status => {
       const items = dict.filter(d => d.status === status);
-      $(`#count-${status}`).textContent = items.length;
-      // Compact chips: just the characters. Tapping one opens its full flash card.
-      $(`#col-${status}`).innerHTML = items.map(item => `
-        <button class="chip" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${escapeHtml(item.char)}</button>
-      `).join('');
+      const pile = $(`#pile-${status}`);
+      const layers = Math.min(items.length, 5);
+      pile.classList.toggle('empty', items.length === 0);
+      pile.style.setProperty('--layers', layers);
+      pile.innerHTML = items.length
+        ? `<span class="pile-top">${escapeHtml(items[0].char)}</span><span class="pile-count">${items.length} card${items.length === 1 ? '' : 's'}</span>`
+        : '<span class="pile-count">No cards yet</span>';
     });
+    if (!deck.classList.contains('hidden')) renderDeck();
   }
+
+  function chipHtml(item) {
+    return `<button class="chip" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${escapeHtml(item.char)}</button>`;
+  }
+
+  // ---------- Deck (one pile, as a study list) ----------
+  const deck = $('#deck');
+  let deckStatus = 'known';
+
+  function renderDeck() {
+    const items = getDict().filter(d => d.status === deckStatus);
+    $('#deck-title').textContent = `> ${deckStatus === 'known' ? 'MEMORIZED' : 'NOT MEMORIZED'} (${items.length})`;
+    $('#deck-list').innerHTML = items.length
+      ? items.map(chipHtml).join('')
+      : '<p class="empty-state">No cards in this pile.</p>';
+  }
+
+  function openDeck(status) {
+    deckStatus = status;
+    deck.classList.remove('hidden');
+    renderDeck();
+  }
+
+  document.querySelectorAll('.pile').forEach(p => p.addEventListener('click', () => {
+    if (!p.classList.contains('empty')) openDeck(p.dataset.status);
+  }));
+  $('#deck-close').addEventListener('click', () => deck.classList.add('hidden'));
+  deck.addEventListener('click', (e) => {
+    if (e.target === deck) { deck.classList.add('hidden'); return; }
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const item = getDict().find(d => d.id === Number(chip.dataset.id));
+    if (item) openWordCard(item);
+  });
 
   dictBoard.addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
@@ -490,12 +535,56 @@
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
     $('#quiz-meaning').textContent = item.en;
-    $('#quiz-example').textContent = item.example || '—';
-    $('#quiz-example-en').textContent = item.exampleEn || '';
+    fillExample(item);
     $('#quiz-back').classList.add('hidden');
     $('#quiz-flip').textContent = 'Flip card';
     $('#quiz-known').disabled = quizMode === 'word' && item.status === 'known';
     $('#quiz-learning').disabled = quizMode === 'word' && item.status === 'learning';
+  }
+
+  function fillExample(item) {
+    $('#quiz-example').textContent = item.example || '…';
+    $('#quiz-example-pinyin').textContent = item.example ? sentencePinyin(item.example) : '';
+    $('#quiz-example-en').textContent = item.exampleEn || '';
+  }
+
+  function sentencePinyin(text) {
+    const lib = window.pinyinPro;
+    if (!lib || !lib.pinyin) return '';
+    try { return lib.pinyin(text, { toneType: 'symbol' }); } catch { return ''; }
+  }
+
+  // Words saved without a phrase get a short example made from their meaning.
+  // We translate a few simple English sentences and keep the first one that uses the word;
+  // if none does, we fall back to a sentence that always fits: "Today I learned the word 「X」."
+  async function makeExample(item) {
+    const m = (item.en || '').replace(/[.!?]+$/, '').trim();
+    const mm = m.replace(/^to /i, '');
+    const templates = m ? [
+      `I like ${m}.`,
+      `I want to ${mm} today.`,
+      `This is very ${mm}.`,
+      `The ${mm} is here.`
+    ] : [];
+    for (const en of templates) {
+      const zh = await translateText(en, 'zh-CN');
+      if (zh && zh.includes(item.char)) return { example: zh, exampleEn: en };
+    }
+    return { example: `我今天学了「${item.char}」这个词。`, exampleEn: `Today I learned the word “${item.char}”.` };
+  }
+
+  async function ensureExample(item) {
+    if (item.example) return;
+    $('#quiz-example').textContent = 'Writing an example…';
+    const ex = await makeExample(item);
+    const dict = getDict();
+    const stored = dict.find(d => d.id === item.id);
+    if (stored) {
+      Object.assign(stored, ex);
+      saveDict(dict);
+    }
+    Object.assign(item, ex);
+    if (quizItem && quizItem.id === item.id) fillExample(item);
   }
 
   function openWordCard(item) {
@@ -545,6 +634,7 @@
   $('#quiz-flip').addEventListener('click', () => {
     const back = $('#quiz-back');
     back.classList.toggle('hidden');
+    if (!back.classList.contains('hidden') && quizItem) ensureExample(quizItem);
     $('#quiz-flip').textContent = back.classList.contains('hidden') ? 'Flip card' : 'Hide';
   });
   $('#quiz-next').addEventListener('click', nextQuizCard);
@@ -690,13 +780,6 @@
     }
   });
 
-  btnClearDict.addEventListener('click', () => {
-    if (confirm('Clear your whole dictionary?')) {
-      saveDict([]);
-      renderDictionary();
-      showToast('Dictionary cleared');
-    }
-  });
 
 
   // ---------- Clock ----------

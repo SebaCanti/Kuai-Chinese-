@@ -1181,3 +1181,70 @@ body::after {
 .dict-col[data-status="known"] .chip { border-color: var(--success); }
 .dict-col[data-status="learning"] .chip { border-color: var(--danger); }
 .quiz-actions .btn:disabled { opacity: 0.3; }
+
+/* ===== Piles: memorized (left) and not memorized (right) as stacked cards ===== */
+.pile {
+  --layers: 0;
+  --pile-color: var(--success);
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  width: calc(100% - 20px);
+  min-height: 120px;
+  margin: 4px auto calc(4px + var(--layers) * 4px);
+  padding: 12px 6px;
+  background: var(--card);
+  color: var(--clear-text);
+  border: 1px solid var(--pile-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  text-shadow: none;
+  transform: translate(calc(var(--layers) * -2px), calc(var(--layers) * -2px));
+  box-shadow:
+    calc(min(var(--layers), 1) * 4px) calc(min(var(--layers), 1) * 4px) 0 -1px var(--bg-secondary),
+    calc(min(var(--layers), 1) * 4px) calc(min(var(--layers), 1) * 4px) 0 0 var(--pile-color),
+    calc(min(var(--layers), 2) * 4px) calc(min(var(--layers), 2) * 4px) 0 -1px var(--bg-secondary),
+    calc(min(var(--layers), 2) * 4px) calc(min(var(--layers), 2) * 4px) 0 0 var(--pile-color),
+    calc(min(var(--layers), 3) * 4px) calc(min(var(--layers), 3) * 4px) 0 -1px var(--bg-secondary),
+    calc(min(var(--layers), 3) * 4px) calc(min(var(--layers), 3) * 4px) 0 0 var(--pile-color),
+    0 0 14px var(--primary-glow);
+  transition: transform 0.15s;
+}
+.pile[data-status="learning"] { --pile-color: var(--danger); }
+.pile:active { transform: translate(0, 0); }
+.pile:focus-visible { outline: 2px dashed var(--accent); outline-offset: 4px; }
+.pile.empty {
+  cursor: default;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--card-border);
+  box-shadow: none;
+  transform: none;
+}
+.pile-top {
+  font-family: var(--study-font);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  word-break: break-all;
+  text-align: center;
+}
+.pile-count { font-size: 17px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
+
+/* ===== Deck list (inside a pile) ===== */
+.deck-hint { margin: 0; font-size: 18px; color: var(--text-muted); text-shadow: none; }
+.deck-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 2px;
+}
+.deck-list .empty-state { width: 100%; }
+#deck .chip { font-size: 1.3rem; padding: 8px 10px; }
+
+.quiz-example-pinyin { font-family: var(--study-font); font-size: 0.9rem; color: var(--primary); }
