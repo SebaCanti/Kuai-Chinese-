@@ -18,7 +18,7 @@
   --header-bg: linear-gradient(180deg, #120810 0%, #0a0a12 100%);
   --shadow: 0 0 20px rgba(255, 42, 109, 0.15);
   --radius: 6px;
-  --font: "Courier New", "Consolas", "SF Mono", monospace;
+  --font: VT323, ui-monospace, monospace;
   --clear-bg: #1a1a2e;
   --clear-text: #ffffff;
 }
@@ -41,7 +41,7 @@
   --header-bg: #020605;
   --shadow: 0 0 24px rgba(0, 255, 100, 0.12);
   --radius: 4px;
-  --font: "Courier New", "Consolas", "SF Mono", "Roboto Mono", monospace;
+  --font: VT323, ui-monospace, monospace;
   --clear-bg: #0a1f14;
   --clear-text: #e8ffe8;
 }
@@ -64,7 +64,7 @@
   --header-bg: linear-gradient(135deg, #3a1460 0%, #1a0a2e 100%);
   --shadow: 0 0 24px rgba(255, 113, 206, 0.2);
   --radius: 8px;
-  --font: "Courier New", "Consolas", monospace;
+  --font: VT323, ui-monospace, monospace;
   --clear-bg: #2a1450;
   --clear-text: #ffffff;
 }
@@ -87,7 +87,7 @@
   --header-bg: #0e1015;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   --radius: 4px;
-  --font: "Courier New", "Consolas", monospace;
+  --font: VT323, ui-monospace, monospace;
   --clear-bg: #1a1f2a;
   --clear-text: #ffffff;
 }
@@ -110,7 +110,7 @@
   --header-bg: linear-gradient(135deg, #1a1640 0%, #0f0c29 100%);
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   --radius: 10px;
-  --font: "Courier New", "Consolas", monospace;
+  --font: VT323, ui-monospace, monospace;
   --clear-bg: rgba(40, 35, 80, 0.9);
   --clear-text: #ffffff;
 }
@@ -238,217 +238,90 @@ html, body {
   to { opacity: 1; }
 }
 
-/* ===== Animated Nerd Character (cyberpunk retro) ===== */
+/* ===== Animated nerd kid behind his laptop, sipping coffee ===== */
 .nerd-scene {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 8px;
-  height: 90px;
-  margin-bottom: 12px;
-  position: relative;
-}
-
-.nerd-boy {
-  position: relative;
-  width: 48px;
-  height: 70px;
-}
-
-.nerd-head {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  margin: 0 auto;
-}
-
-.nerd-hair {
-  position: absolute;
-  top: 0;
-  left: 4px;
-  width: 28px;
-  height: 14px;
-  background: var(--primary);
-  border-radius: 14px 14px 4px 4px;
-  opacity: 0.9;
-  box-shadow: 0 0 8px var(--primary-glow);
-}
-
-.nerd-face {
-  position: absolute;
-  top: 10px;
-  left: 6px;
-  width: 24px;
-  height: 24px;
-  background: #1a3a2a;
-  border: 1.5px solid var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 6px var(--primary-glow);
-}
-
-.nerd-glasses {
-  position: absolute;
-  top: 7px;
-  left: 1px;
-  display: flex;
-  gap: 2px;
-}
-
-.nerd-glasses .lens {
-  width: 9px;
-  height: 8px;
-  border: 1.5px solid var(--primary);
-  border-radius: 2px;
-  background: rgba(0, 255, 100, 0.15);
-  box-shadow: 0 0 4px var(--primary-glow);
-}
-
-.nerd-eyes {
-  position: absolute;
-  top: 9px;
-  left: 3px;
-  display: flex;
-  gap: 6px;
-}
-
-.nerd-eyes .eye {
-  width: 3px;
-  height: 3px;
-  background: var(--primary);
-  border-radius: 50%;
-  animation: blink 3s infinite;
-}
-
-@keyframes blink {
-  0%, 90%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.1); }
-}
-
-.nerd-body {
-  position: relative;
-  width: 40px;
-  height: 34px;
-  margin: 0 auto;
-}
-
-.nerd-torso {
-  width: 22px;
-  height: 28px;
-  background: #0d2818;
-  border: 1.5px solid var(--primary);
-  margin: 0 auto;
-  border-radius: 4px 4px 2px 2px;
-  box-shadow: 0 0 6px var(--primary-glow);
-}
-
-.nerd-arm {
-  position: absolute;
-  width: 8px;
-  height: 18px;
-  background: #0d2818;
-  border: 1px solid var(--primary);
-  border-radius: 3px;
-  top: 2px;
-}
-
-.nerd-arm.left { left: 2px; transform: rotate(15deg); }
-.nerd-arm.right { right: 2px; transform-origin: top center; }
-
-.typing-arm {
-  animation: typeArm 0.35s ease-in-out infinite alternate;
-}
-
-@keyframes typeArm {
-  from { transform: rotate(-8deg) translateY(0); }
-  to { transform: rotate(12deg) translateY(3px); }
-}
-
-.nerd-desk {
-  position: relative;
-  width: 70px;
-  height: 50px;
-}
-
-.monitor {
-  width: 56px;
-  height: 36px;
-  background: #041208;
-  border: 2px solid var(--primary);
-  border-radius: 3px;
-  margin: 0 auto;
-  box-shadow: 0 0 12px var(--primary-glow), inset 0 0 10px rgba(0, 255, 100, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.screen {
+  display: block;
   width: 100%;
-  height: 100%;
-  padding: 4px;
-  position: relative;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto 10px;
+  overflow: visible;
+  filter: drop-shadow(0 0 4px var(--primary-glow));
+}
+.nerd-scene * {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.screen-lines {
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 255, 100, 0.08) 3px,
-    rgba(0, 255, 100, 0.08) 4px
-  );
-  animation: scanline 2s linear infinite;
-}
+.nerd-scene .body { fill: var(--bg-secondary); stroke: var(--primary); stroke-width: 2; }
+.nerd-scene .hood { fill: none; stroke: var(--primary); stroke-width: 1.5; opacity: 0.7; }
+.nerd-scene .ear,
+.nerd-scene .face { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
+.nerd-scene .hair { fill: var(--primary); stroke: var(--primary); stroke-width: 1.5; }
+.nerd-scene .eye { fill: var(--primary); transform-box: fill-box; transform-origin: center; animation: nerdEyes 6s infinite; }
+.nerd-scene .glasses { fill: var(--accent-glow); fill-opacity: 0.25; stroke: var(--primary); stroke-width: 2.2; }
+.nerd-scene .glasses path { fill: none; }
+.nerd-scene .reflect path { stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; animation: codeReflect 1.4s steps(3) infinite; }
+.nerd-scene .reflect .r2 { animation-delay: -0.7s; }
+.nerd-scene .mouth { fill: none; stroke: var(--primary); stroke-width: 1.8; animation: nerdMouth 6s infinite; }
+.nerd-scene .blush { fill: var(--primary); opacity: 0.25; }
 
-@keyframes scanline {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 20px; }
+.nerd-scene .lid { fill: var(--bg-secondary); stroke: var(--primary); stroke-width: 2.2; }
+.nerd-scene .lid-logo {
+  fill: var(--primary);
+  font: 700 24px "Noto Sans SC", sans-serif;
+  text-anchor: middle;
+  animation: logoPulse 2.4s ease-in-out infinite;
 }
+.nerd-scene .base { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
+.nerd-scene .desk { stroke: var(--card-border); stroke-width: 2; stroke-dasharray: 4 4; }
 
-.cursor-blink {
-  position: absolute;
-  bottom: 4px;
-  left: 6px;
-  color: var(--primary);
-  font-size: 10px;
-  animation: cursorBlink 0.8s step-end infinite;
-  text-shadow: 0 0 6px var(--primary);
+.nerd-scene .arm { fill: none; stroke: var(--primary); stroke-width: 9; }
+.nerd-scene .hand { fill: var(--primary); }
+.nerd-scene .cup,
+.nerd-scene .handle { fill: var(--card); stroke: var(--accent); stroke-width: 2.2; }
+.nerd-scene .handle { fill: none; stroke-width: 3; }
+.nerd-scene .cup-band { stroke: var(--accent); stroke-width: 1.5; opacity: 0.6; }
+.nerd-scene .steam path { fill: none; stroke: var(--accent); stroke-width: 1.6; opacity: 0; animation: steam 2.4s ease-in-out infinite; }
+.nerd-scene .steam .s2 { animation-delay: 0.8s; }
+.nerd-scene .steam .s3 { animation-delay: 1.6s; }
+
+.nerd-scene .glyph { fill: var(--text-muted); font: 14px VT323, monospace; opacity: 0; animation: glyphFloat 5s ease-in-out infinite; }
+.nerd-scene .glyph.g2 { font: 700 13px "Noto Sans SC", sans-serif; animation-delay: 1.2s; }
+.nerd-scene .glyph.g3 { animation-delay: 2.5s; }
+.nerd-scene .glyph.g4 { animation-delay: 3.7s; }
+
+/* Blink once, then close eyes happily while sipping (synced with the 6s sip loop) */
+@keyframes nerdEyes {
+  0%, 18%, 22%, 52%, 86%, 100% { transform: scaleY(1); }
+  20% { transform: scaleY(0.1); }
+  58%, 80% { transform: scaleY(0.15); }
 }
-
-@keyframes cursorBlink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+@keyframes nerdMouth {
+  0%, 52%, 86%, 100% { opacity: 1; }
+  58%, 80% { opacity: 0; }
 }
-
-.keyboard {
-  width: 62px;
-  height: 10px;
-  background: #041208;
-  border: 1.5px solid var(--primary);
-  border-radius: 2px;
-  margin: 3px auto 0;
-  box-shadow: 0 0 6px var(--primary-glow);
-  position: relative;
-  overflow: hidden;
+@keyframes codeReflect {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(6px); }
 }
-
-.keys {
-  position: absolute;
-  inset: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--primary) 0px,
-    var(--primary) 2px,
-    transparent 2px,
-    transparent 5px
-  );
-  opacity: 0.4;
-  animation: keyPress 0.35s steps(4) infinite;
+@keyframes logoPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
-
-@keyframes keyPress {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.7; }
+@keyframes steam {
+  0% { opacity: 0; transform: translateY(4px); }
+  40% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes glyphFloat {
+  0% { opacity: 0; transform: translateY(8px); }
+  30%, 60% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nerd-scene * { animation: none !important; }
+  .nerd-scene .steam path, .nerd-scene .glyph { opacity: 0.6; }
 }
 
 /* Paste Zone */
@@ -923,4 +796,181 @@ html, body {
   #app { padding-bottom: 40px; }
   .theme-grid { grid-template-columns: repeat(3, 1fr); }
   .logo-en { font-size: 1.3rem; letter-spacing: 4px; }
+}
+
+/* =====================================================================
+   Kuai Temperature format: VT323 phosphor terminal for the whole UI.
+   Study text (input, translations, characters, pinyin, meanings) keeps
+   the original readable monospace font and sizes on purpose.
+   ===================================================================== */
+:root {
+  --study-font: "Courier New", "Consolas", "SF Mono", "Roboto Mono", monospace;
+  --zh-font: "Noto Sans SC", sans-serif;
+}
+
+body {
+  font-size: 21px;
+  line-height: 1.2;
+  text-shadow: 0 0 7px var(--primary-glow);
+  background:
+    radial-gradient(ellipse at 50% -10%, var(--accent-glow), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+/* Scanlines over everything (kept light so study text stays crisp) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 900;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+}
+
+/* ---- Study text: unchanged font + sizes, no glow ---- */
+#input-text,
+.clear-text,
+.text-box,
+.word-char,
+.word-pinyin,
+.word-meaning,
+.card-item .original,
+.card-item .pinyin-line,
+.dict-item .char,
+.dict-item .pinyin,
+.dict-item .meaning {
+  font-family: var(--study-font);
+  line-height: 1.5;
+}
+#input-text { line-height: 1.6; text-shadow: none; }
+.text-box { line-height: 1.65; }
+.clear-text, .word-char, .word-meaning, .card-item .original, .dict-item .char, .dict-item .meaning { text-shadow: none; }
+
+/* ---- Header: three-column board header like Kuai Temperature ---- */
+.header {
+  padding: 14px 16px 0;
+  border-bottom: 1px dashed var(--text-muted);
+}
+.header-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.brand { min-width: 0; }
+.logo {
+  justify-self: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 1;
+}
+.logo-en {
+  font-size: 1em;
+  font-weight: normal;
+  letter-spacing: 3px;
+  text-shadow: 0 0 7px var(--primary-glow);
+}
+.logo-zh {
+  font-size: 0.75em;
+  font-family: var(--zh-font);
+  letter-spacing: 2px;
+  text-shadow: 0 0 7px var(--primary-glow);
+}
+.header-right { justify-self: end; }
+.clock { font-size: 36px; letter-spacing: 0; text-shadow: 0 0 7px var(--primary-glow); }
+
+.nav-tabs { border-top: 1px dashed var(--card-border); }
+.tab {
+  font-size: 21px;
+  font-weight: normal;
+  letter-spacing: 2px;
+  padding: 8px 6px;
+}
+
+/* ---- Panels ---- */
+.tab-content { padding: 16px; }
+.paste-zone,
+.result-block,
+.card-item {
+  border: 1px solid var(--card-border);
+  background: var(--card);
+}
+.paste-hint { font-size: 24px; font-weight: normal; letter-spacing: 2px; }
+.paste-sub { font-size: 18px; letter-spacing: 1px; text-shadow: none; }
+
+.result-block h3 {
+  font-size: 20px;
+  font-weight: normal;
+  letter-spacing: 2px;
+  border-bottom: 1px dashed var(--card-border);
+  text-shadow: none;
+}
+.section-header h2 { font-size: 24px; font-weight: normal; letter-spacing: 2px; }
+.empty-state { font-size: 21px; text-shadow: none; }
+.card-item .meta { font-size: 18px; text-shadow: none; }
+.settings-desc { font-size: 19px; line-height: 1.3; text-shadow: none; }
+.loading p { font-size: 22px; letter-spacing: 2px; }
+
+.word-table th { font-size: 18px; font-weight: normal; letter-spacing: 2px; border-bottom: 1px dashed var(--text-muted); }
+.word-table td { border-bottom: 1px dashed var(--card-border); }
+
+/* ---- Buttons: [ BRACKETED ] terminal buttons ---- */
+.btn {
+  display: inline-block;
+  text-align: center;
+  padding: 8px 14px;
+  font-size: 22px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  border-color: var(--text-muted);
+  color: var(--primary);
+  text-shadow: 0 0 7px var(--primary-glow);
+}
+.btn:not(.icon-btn)::before { content: "[ "; }
+.btn:not(.icon-btn)::after { content: " ]"; }
+.btn:hover { border-color: var(--primary); }
+.btn.primary {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+  text-shadow: none;
+  box-shadow: 0 0 14px var(--primary-glow);
+}
+.btn.primary:hover { background: var(--primary); filter: brightness(1.15); }
+.btn.secondary { color: var(--text-muted); text-shadow: none; }
+.btn.danger { text-shadow: none; }
+.btn.small { padding: 5px 10px; font-size: 19px; letter-spacing: 1px; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn.icon-btn { font-family: var(--study-font); text-shadow: none; }
+
+/* ---- Settings ---- */
+.theme-name { font-size: 21px; font-weight: normal; letter-spacing: 1px; }
+.theme-desc { font-size: 16px; text-shadow: none; }
+
+/* ---- Toast ---- */
+.toast { font-size: 20px; font-weight: normal; letter-spacing: 1px; border-radius: 0; }
+
+/* ---- Phones (same breakpoints as Kuai Temperature) ---- */
+@media (min-width: 640px) {
+  .logo-en { font-size: 1em; letter-spacing: 3px; }
+}
+@media (max-width: 700px) {
+  .header-top { grid-template-columns: 1fr auto; gap: 8px; }
+  .brand { display: none; }
+  .logo { justify-self: start; gap: 6px; font-size: 26px; }
+  .logo-en { letter-spacing: 1px; }
+  .clock { font-size: 24px; }
+}
+@media (max-width: 420px) {
+  .header { padding: 12px 12px 0; }
+  .logo { gap: 4px; font-size: 22px; min-width: 0; }
+  .logo-en, .logo-zh { letter-spacing: 0; }
+  .clock { font-size: 20px; }
+  .tab { font-size: 18px; letter-spacing: 1px; }
+  .btn { font-size: 20px; }
+  .btn.small { font-size: 17px; }
 }

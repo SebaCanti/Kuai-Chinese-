@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="matrix-soft">
+<html lang="en" data-theme="matrix-soft">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#05080a" />
-  <meta name="description" content="Kuai Chinese - Aprende chino rápido: pega texto, obtén Pinyin, traducciones y estudia con tu diccionario personal." />
+  <meta name="description" content="Kuai Chinese - Learn Chinese fast: paste text, get Pinyin and translations, and study with your personal dictionary." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Kuai Chinese 快中文</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
+  <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
+  <link rel="stylesheet" href="styles.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -19,6 +22,7 @@
     <!-- Header -->
     <header class="header">
       <div class="header-top">
+        <div class="brand"></div>
         <h1 class="logo">
           <span class="logo-en">KUAI CHINESE</span>
           <span class="logo-zh">快中文</span>
@@ -28,85 +32,122 @@
         </div>
       </div>
       <nav class="nav-tabs">
-        <button class="tab active" data-tab="translate">Traducir</button>
-        <button class="tab" data-tab="history">Historial</button>
-        <button class="tab" data-tab="dictionary">Diccionario</button>
-        <button class="tab" data-tab="settings">Ajustes</button>
+        <button class="tab active" data-tab="translate">Translate</button>
+        <button class="tab" data-tab="history">History</button>
+        <button class="tab" data-tab="dictionary">Dictionary</button>
+        <button class="tab" data-tab="settings">Settings</button>
       </nav>
     </header>
 
     <!-- Translate Tab -->
     <main id="tab-translate" class="tab-content active">
       <div id="paste-zone" class="paste-zone">
-        <!-- Animated nerd character -->
-        <div class="nerd-scene" aria-hidden="true">
-          <div class="nerd-boy">
-            <div class="nerd-head">
-              <div class="nerd-hair"></div>
-              <div class="nerd-face">
-                <div class="nerd-glasses">
-                  <span class="lens"></span>
-                  <span class="lens"></span>
-                </div>
-                <div class="nerd-eyes">
-                  <span class="eye"></span>
-                  <span class="eye"></span>
-                </div>
-              </div>
-            </div>
-            <div class="nerd-body">
-              <div class="nerd-arm left"></div>
-              <div class="nerd-torso"></div>
-              <div class="nerd-arm right typing-arm"></div>
-            </div>
-          </div>
-          <div class="nerd-desk">
-            <div class="monitor">
-              <div class="screen">
-                <div class="screen-lines"></div>
-                <div class="cursor-blink">_</div>
-              </div>
-            </div>
-            <div class="keyboard">
-              <div class="keys"></div>
-            </div>
-          </div>
-        </div>
+        <!-- Animated nerd kid: behind his laptop, sipping coffee -->
+        <svg class="nerd-scene" viewBox="0 0 240 150" aria-hidden="true">
+          <!-- floating code glyphs -->
+          <g class="glyphs">
+            <text class="glyph g1" x="40" y="70">{ }</text>
+            <text class="glyph g2" x="196" y="56">快</text>
+            <text class="glyph g3" x="22" y="40">&lt;/&gt;</text>
+            <text class="glyph g4" x="210" y="92">01</text>
+          </g>
 
-        <p class="paste-hint">MANTÉN PRESIONADO PARA PEGAR</p>
-        <p class="paste-sub">o toca para editar / pegar manualmente</p>
-        <textarea id="input-text" placeholder="Pega o escribe aquí el texto en chino, inglés o español..." rows="3"></textarea>
-        <button id="btn-translate" class="btn primary">TRADUCIR AHORA</button>
+          <!-- kid -->
+          <g class="kid">
+            <path class="body" d="M66 140 C66 104 82 88 110 88 C138 88 154 104 154 140 Z" />
+            <path class="hood" d="M94 89 Q110 100 126 89" />
+            <circle class="ear" cx="85" cy="50" r="5" />
+            <circle class="ear" cx="135" cy="50" r="5" />
+            <circle class="face" cx="110" cy="48" r="24" />
+            <path class="hair" d="M86 41 Q84 21 104 20 Q100 12 112 16 Q118 8 122 18 Q138 20 134 39 Q127 30 117 32 Q112 27 106 32 Q95 30 86 41 Z" />
+            <g class="eyes">
+              <circle class="eye" cx="100" cy="51" r="2.2" />
+              <circle class="eye" cx="120" cy="51" r="2.2" />
+            </g>
+            <g class="glasses">
+              <circle cx="100" cy="51" r="8.5" />
+              <circle cx="120" cy="51" r="8.5" />
+              <path d="M108.5 50 Q110 48 111.5 50 M91.5 50 L86 47 M128.5 50 L134 47" />
+            </g>
+            <g class="reflect">
+              <path class="r1" d="M95 48 H104" />
+              <path class="r2" d="M115 48 H125" />
+            </g>
+            <path class="mouth" d="M105 62 Q110 66 115 62" />
+            <circle class="blush" cx="94" cy="60" r="2.5" />
+            <circle class="blush" cx="126" cy="60" r="2.5" />
+          </g>
+
+          <!-- laptop (seen from behind) -->
+          <g class="laptop">
+            <rect class="lid" x="58" y="80" width="104" height="54" rx="4" />
+            <text class="lid-logo" x="110" y="115">快</text>
+            <rect class="base" x="50" y="134" width="120" height="6" rx="2" />
+          </g>
+          <path class="desk" d="M10 140 H230" />
+
+          <!-- arm + coffee mug, sipping on a loop -->
+          <path class="arm" d="M156 102 Q176 108 184 118">
+            <animate attributeName="d" dur="6s" repeatCount="indefinite"
+              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
+              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
+              values="M156 102 Q176 108 184 118;M156 102 Q176 108 184 118;M156 102 Q178 98 121 77;M156 102 Q178 98 121 77;M156 102 Q176 108 184 118;M156 102 Q176 108 184 118" />
+          </path>
+          <g class="mug">
+            <animateTransform attributeName="transform" type="translate" dur="6s" repeatCount="indefinite"
+              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
+              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
+              values="0 0;0 0;-64 -46;-64 -46;0 0;0 0" />
+            <animateTransform attributeName="transform" type="rotate" additive="sum" dur="6s" repeatCount="indefinite"
+              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
+              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
+              values="0 194 118;0 194 118;-28 194 118;-28 194 118;0 194 118;0 194 118" />
+            <path class="handle" d="M203 112 Q212 112 212 118 Q212 124 203 124" />
+            <rect class="cup" x="184" y="106" width="20" height="23" rx="3" />
+            <path class="cup-band" d="M184 113 H204" />
+            <circle class="hand" cx="185" cy="119" r="5" />
+            <g class="steam">
+              <path class="s1" d="M189 102 Q186 96 189 90 Q192 84 189 78" />
+              <path class="s2" d="M195 102 Q192 95 195 88 Q198 81 195 74" />
+              <path class="s3" d="M201 102 Q198 96 201 90 Q204 84 201 78" />
+            </g>
+          </g>
+        </svg>
+
+        <p class="paste-hint">&gt; PRESS AND HOLD TO PASTE</p>
+        <p class="paste-sub">or tap the box to type / paste manually</p>
+        <textarea id="input-text" placeholder="Paste or type Chinese, English or Spanish text here..." rows="3"></textarea>
+        <button id="btn-translate" class="btn primary">TRANSLATE NOW</button>
       </div>
 
       <div id="loading" class="loading hidden">
         <div class="spinner"></div>
-        <p>Traduciendo...</p>
+        <p>TRANSLATING…</p>
       </div>
 
       <div id="results" class="results hidden">
         <section class="result-block">
-          <h3>ORIGINAL</h3>
+          <h3>&gt; ORIGINAL</h3>
           <div id="original-text" class="text-box clear-text"></div>
         </section>
 
         <section class="result-block">
-          <h3 id="full-title">TRADUCCIÓN COMPLETA</h3>
+          <h3 id="full-title">&gt; FULL TRANSLATION</h3>
           <div id="full-pinyin" class="text-box pinyin"></div>
           <div id="full-english" class="text-box clear-text"></div>
           <div id="full-spanish" class="text-box clear-text hidden"></div>
-          <button id="btn-show-spanish" class="btn secondary small">Mostrar en español</button>
+          <button id="btn-show-spanish" class="btn secondary small">Show in Spanish</button>
         </section>
 
         <section class="result-block">
-          <h3>PALABRA POR PALABRA</h3>
+          <h3>&gt; WORD BY WORD</h3>
           <div class="word-table-wrapper">
             <table id="word-table" class="word-table">
               <thead>
                 <tr>
-                  <th>CARÁCTER</th>
+                  <th>CHARACTER</th>
                   <th>PINYIN</th>
-                  <th id="th-meaning">INGLÉS</th>
+                  <th id="th-meaning">ENGLISH</th>
                   <th></th>
                 </tr>
               </thead>
@@ -114,8 +155,8 @@
             </table>
           </div>
           <div class="actions-row">
-            <button id="btn-toggle-lang" class="btn secondary small">Cambiar a español</button>
-            <button id="btn-save-all" class="btn primary small">Guardar todas</button>
+            <button id="btn-toggle-lang" class="btn secondary small">Switch to Spanish</button>
+            <button id="btn-save-all" class="btn primary small">Save all</button>
           </div>
         </section>
       </div>
@@ -124,71 +165,71 @@
     <!-- History Tab -->
     <main id="tab-history" class="tab-content">
       <div class="section-header">
-        <h2>HISTORIAL</h2>
-        <button id="btn-clear-history" class="btn danger small">Borrar todo</button>
+        <h2>&gt; HISTORY</h2>
+        <button id="btn-clear-history" class="btn danger small">Clear all</button>
       </div>
       <div id="history-list" class="list-container">
-        <p class="empty-state">Aún no hay frases en el historial.</p>
+        <p class="empty-state">No phrases in your history yet.</p>
       </div>
     </main>
 
     <!-- Dictionary Tab -->
     <main id="tab-dictionary" class="tab-content">
       <div class="section-header">
-        <h2>MI DICCIONARIO</h2>
-        <button id="btn-clear-dict" class="btn danger small">Borrar todo</button>
+        <h2>&gt; MY DICTIONARY</h2>
+        <button id="btn-clear-dict" class="btn danger small">Clear all</button>
       </div>
       <div id="dict-list" class="list-container">
-        <p class="empty-state">Aún no has guardado palabras.</p>
+        <p class="empty-state">You haven’t saved any words yet.</p>
       </div>
     </main>
 
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>AJUSTES</h2>
+        <h2>&gt; SETTINGS</h2>
       </div>
 
       <section class="result-block">
-        <h3>TEMA VISUAL</h3>
-        <p class="settings-desc">Elige el estilo cyberpunk. Se guarda automáticamente.</p>
+        <h3>&gt; VISUAL THEME</h3>
+        <p class="settings-desc">Pick your cyberpunk style. It is saved automatically.</p>
         <div class="theme-grid" id="theme-grid">
           <button class="theme-card" data-theme="neon-tokyo">
             <div class="theme-preview neon-tokyo-preview"></div>
             <span class="theme-name">Neon Tokyo</span>
-            <span class="theme-desc">Rosa + cian neón</span>
+            <span class="theme-desc">Neon pink + cyan</span>
           </button>
           <button class="theme-card active" data-theme="matrix-soft">
             <div class="theme-preview matrix-soft-preview"></div>
             <span class="theme-name">Matrix Soft</span>
-            <span class="theme-desc">Verde digital</span>
+            <span class="theme-desc">Digital green</span>
           </button>
           <button class="theme-card" data-theme="synthwave">
             <div class="theme-preview synthwave-preview"></div>
             <span class="theme-name">Synthwave</span>
-            <span class="theme-desc">Atardecer 80s</span>
+            <span class="theme-desc">80s sunset</span>
           </button>
           <button class="theme-card" data-theme="chrome-crimson">
             <div class="theme-preview chrome-crimson-preview"></div>
             <span class="theme-name">Chrome & Crimson</span>
-            <span class="theme-desc">Rojo industrial</span>
+            <span class="theme-desc">Industrial red</span>
           </button>
           <button class="theme-card" data-theme="holo-glass">
             <div class="theme-preview holo-glass-preview"></div>
             <span class="theme-name">Holo Glass</span>
-            <span class="theme-desc">Holográfico</span>
+            <span class="theme-desc">Holographic</span>
           </button>
         </div>
       </section>
 
       <section class="result-block">
-        <h3>ACERCA DE</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 v1.1 — Aprende chino rápido con Pinyin, traducciones y diccionario personal.</p>
+        <h3>&gt; ABOUT</h3>
+        <p class="settings-desc">Kuai Chinese 快中文 v1.2 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
