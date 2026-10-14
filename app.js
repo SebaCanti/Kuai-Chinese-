@@ -81,16 +81,16 @@
     try { items = JSON.parse(localStorage.getItem(STORAGE_DICT) || '[]'); }
     catch { items = []; }
     return items.map(d => {
-      const w = { status: 'new', example: '', exampleEn: '', ...d };
-      // Words saved before examples had a source: a real saved phrase becomes the word's phrase;
-      // anything made by the old sentence generator is dropped so a natural one replaces it.
-      if (w.example && !w.exampleSource) {
-        if (/^我今天学了「.*」这个词。$/.test(w.example) || /^(I like .+|I want to .+ today|This is very .+|The .+ is here)\.$/.test(w.exampleEn)) {
-          w.example = ''; w.exampleEn = '';
-        } else if (!w.phrase) {
-          w.phrase = w.example; w.phraseEn = w.exampleEn;
-        }
-        w.exampleSource = w.example ? 'phrase' : '';
+      const w = { status: 'new', ...d };
+      // Example sentences are only ones you added: the phrase you saved the word from, or
+      // sentences you add on its card. Older versions stored one example (sometimes made up by
+      // the app); keep it only if it was your phrase.
+      if (!Array.isArray(w.sentences)) {
+        const own = w.phrase || w.example || '';
+        const ownEn = w.phrase ? (w.phraseEn || '') : (w.exampleEn || '');
+        const madeUp = /^我今天学了「.*」这个词。$/.test(own) ||
+          /^(I like .+|I want to .+ today|This is very .+|The .+ is here)\.$/.test(ownEn);
+        w.sentences = own && !madeUp ? [{ zh: own, en: ownEn }] : [];
       }
       return w;
     });
@@ -122,8 +122,15 @@
 
   function addToDict(word) {
     const dict = getDict();
-    if (dict.some(d => d.char === word.char)) {
-      showToast('Already in your dictionary');
+    const existing = dict.find(d => d.char === word.char);
+    if (existing) {
+      if (word.example && !existing.sentences.some(x => x.zh === word.example)) {
+        existing.sentences.push({ zh: word.example, en: word.exampleEn || '' });
+        saveDict(dict);
+        showToast('Added this phrase to its examples');
+      } else {
+        showToast('Already in your dictionary');
+      }
       return false;
     }
     dict.unshift({
@@ -133,10 +140,7 @@
       en: word.en,
       es: word.es || '',
       status: 'new',
-      example: word.example || '',
-      exampleEn: word.exampleEn || '',
-      phrase: word.example || '',
-      phraseEn: word.exampleEn || '',
+      sentences: word.example ? [{ zh: word.example, en: word.exampleEn || '' }] : [],
       date: new Date().toISOString()
     });
     saveDict(dict);
@@ -550,6 +554,7 @@
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
     $('#quiz-meaning').textContent = item.en;
+    exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
     $('#quiz-flip').textContent = 'Flip card';
@@ -557,19 +562,32 @@
     $('#quiz-learning').disabled = quizMode === 'word' && item.status === 'learning';
   }
 
-  // Older fallback examples marked the word with brackets; show them without.
-  function cleanExample(item) {
-    return {
-      example: (item.example || '').replace(/「([^」]*)」/g, '$1'),
-      exampleEn: (item.exampleEn || '').replace(/[“”]/g, '')
-    };
-  }
+  // ---------- Example sentences (only ones you added) ----------
+  let exIdx = 0;
 
   function fillExample(item) {
-    const { example, exampleEn } = cleanExample(item);
-    $('#quiz-example').textContent = example || '…';
-    $('#quiz-example-pinyin').textContent = example ? sentencePinyin(example) : '';
-    $('#quiz-example-en').textContent = exampleEn;
+    const list = item.sentences || [];
+    if (exIdx >= list.length) exIdx = 0;
+    const cur = list[exIdx];
+    $('#quiz-example').textContent = cur ? cur.zh : 'No example yet. Add a sentence where you found this word.';
+    $('#quiz-example').classList.toggle('empty', !cur);
+    $('#quiz-example-pinyin').textContent = cur ? sentencePinyin(cur.zh) : '';
+    $('#quiz-example-en').textContent = cur ? cur.en : '';
+    $('#quiz-refresh').classList.toggle('hidden', list.length < 2);
+    $('#quiz-ex-count').textContent = list.length > 1 ? `${exIdx + 1}/${list.length}` : '';
+    $('#quiz-ex-delete').classList.toggle('hidden', !cur);
+    $('#quiz-add-form').classList.add('hidden');
+    $('#quiz-add').classList.remove('hidden');
+  }
+
+  function updateSentences(item, sentences) {
+    const dict = getDict();
+    const stored = dict.find(d => d.id === item.id);
+    if (stored) {
+      stored.sentences = sentences;
+      saveDict(dict);
+    }
+    item.sentences = sentences;
   }
 
   function sentencePinyin(text) {
@@ -578,103 +596,50 @@
     try { return lib.pinyin(text, { toneType: 'symbol' }); } catch { return ''; }
   }
 
-  // ---------- Example sentences ----------
-  // Examples are always real, natural sentences: the phrase you saved the word from, sentences
-  // from the built-in bank (sentences.js) at your HSK level, or native-speaker sentences from
-  // Tatoeba. If none contains the word yet, we show: "我今天学了X这个词。" (Today I learned the word X.)
-  const HSK_KEY = 'kuai_hsk_max';
-  function getHskMax() {
-    let n = 4;
-    try { n = parseInt(localStorage.getItem(HSK_KEY), 10); } catch {}
-    return [4, 5, 6].includes(n) ? n : 4;
+  // ↻ shows the next of your sentences
+  function nextExample() {
+    if (!quizItem || (quizItem.sentences || []).length < 2) return;
+    exIdx = (exIdx + 1) % quizItem.sentences.length;
+    fillExample(quizItem);
   }
 
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+  function openAddSentence() {
+    $('#quiz-add-form').classList.remove('hidden');
+    $('#quiz-add').classList.add('hidden');
+    const input = $('#quiz-add-input');
+    input.value = '';
+    input.focus();
   }
 
-  function bankExamples(word) {
-    const max = getHskMax();
-    return (window.KUAI_SENTENCES || [])
-      .filter(([lvl, zh]) => lvl <= max && zh.includes(word))
-      .map(([, zh, en]) => ({ example: zh, exampleEn: en, exampleSource: 'bank' }));
-  }
-
-  // Short native-speaker sentences from Tatoeba (skipped quietly if it can't be reached).
-  const tatoebaCache = {};
-  async function tatoebaExamples(word) {
-    if (tatoebaCache[word]) return tatoebaCache[word];
-    let list = [];
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 5000);
-      const url = `https://tatoeba.org/en/api_v0/search?from=cmn&to=eng&orphans=no&unapproved=no&sort=relevance&query=${encodeURIComponent('=' + word)}`;
-      const res = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(timer);
-      const data = await res.json();
-      list = (data.results || []).map(r => {
-        const trans = (r.translations || []).flat().find(t => t && t.lang === 'eng');
-        return { example: r.text, exampleEn: trans ? trans.text : '', exampleSource: 'tatoeba' };
-      }).filter(e => e.example && e.example.includes(word) && e.exampleEn && e.example.length <= 30);
-    } catch {}
-    tatoebaCache[word] = list;
-    return list;
-  }
-
-  async function allExamples(item) {
-    const list = [];
-    if (item.phrase) list.push({ example: item.phrase, exampleEn: item.phraseEn || '', exampleSource: 'phrase' });
-    list.push(...shuffle(bankExamples(item.char)));
-    list.push(...await tatoebaExamples(item.char));
-    return list;
-  }
-
-  function fallbackExample(item) {
-    return { example: `我今天学了${item.char}这个词。`, exampleEn: `Today I learned the word ${item.char}.`, exampleSource: 'fallback' };
-  }
-
-  async function makeExample(item, avoid) {
-    const options = (await allExamples(item)).filter(e => e.example !== avoid);
-    return options[0] || null;
-  }
-
-  function storeExample(item, ex) {
-    const dict = getDict();
-    const stored = dict.find(d => d.id === item.id);
-    if (stored) {
-      Object.assign(stored, ex);
-      saveDict(dict);
-    }
-    Object.assign(item, ex);
-    if (quizItem && quizItem.id === item.id) fillExample(item);
-  }
-
-  // ↻ swaps the example for another real sentence that uses the word
-  async function refreshExample() {
+  async function saveSentence() {
     if (!quizItem) return;
-    const btn = $('#quiz-refresh');
-    if (btn.classList.contains('spinning')) return;
-    btn.classList.add('spinning');
-    try {
-      const ex = await makeExample(quizItem, quizItem.example);
-      if (ex) storeExample(quizItem, ex);
-      else showToast('No other examples for this word yet');
-    } finally {
-      btn.classList.remove('spinning');
+    const zh = $('#quiz-add-input').value.trim();
+    if (!zh) return;
+    if (!zh.includes(quizItem.char)) {
+      showToast(`The sentence must contain ${quizItem.char}`);
+      return;
     }
+    if (quizItem.sentences.some(x => x.zh === zh)) {
+      showToast('You already added this sentence');
+      return;
+    }
+    const btn = $('#quiz-add-save');
+    btn.disabled = true;
+    const en = await translateText(zh, 'en');
+    btn.disabled = false;
+    updateSentences(quizItem, [...quizItem.sentences, { zh, en }]);
+    exIdx = quizItem.sentences.length - 1;
+    fillExample(quizItem);
+    showToast('Sentence added ✓');
   }
 
-  async function ensureExample(item) {
-    if (item.example) return;
-    $('#quiz-example').textContent = 'Finding an example…';
-    storeExample(item, (await makeExample(item)) || fallbackExample(item));
+  function deleteSentence() {
+    if (!quizItem || !quizItem.sentences[exIdx]) return;
+    updateSentences(quizItem, quizItem.sentences.filter((_, i) => i !== exIdx));
+    exIdx = 0;
+    fillExample(quizItem);
+    showToast('Sentence deleted');
   }
-
 
   function openWordCard(item) {
     quizMode = 'word';
@@ -723,22 +688,14 @@
   $('#quiz-flip').addEventListener('click', () => {
     const back = $('#quiz-back');
     back.classList.toggle('hidden');
-    if (!back.classList.contains('hidden') && quizItem) ensureExample(quizItem);
     $('#quiz-flip').textContent = back.classList.contains('hidden') ? 'Flip card' : 'Hide';
   });
   $('#quiz-next').addEventListener('click', nextQuizCard);
-  $('#quiz-refresh').addEventListener('click', refreshExample);
-
-  // HSK level for generated examples (Settings)
-  function renderHskSetting() {
-    document.querySelectorAll('.hsk-opt').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.hsk) === getHskMax())));
-  }
-  document.querySelectorAll('.hsk-opt').forEach(b => b.addEventListener('click', () => {
-    try { localStorage.setItem(HSK_KEY, b.dataset.hsk); } catch {}
-    renderHskSetting();
-    showToast(`Examples up to HSK ${b.dataset.hsk}`);
-  }));
-  renderHskSetting();
+  $('#quiz-refresh').addEventListener('click', nextExample);
+  $('#quiz-add').addEventListener('click', openAddSentence);
+  $('#quiz-add-cancel').addEventListener('click', () => fillExample(quizItem));
+  $('#quiz-add-save').addEventListener('click', saveSentence);
+  $('#quiz-ex-delete').addEventListener('click', deleteSentence);
   $('#quiz-known').addEventListener('click', () => {
     if (!quizItem) return;
     setStatus(quizItem.id, 'known');

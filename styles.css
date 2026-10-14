@@ -1266,16 +1266,35 @@ body::after {
 }
 .refresh-btn:hover, .refresh-btn:focus-visible { border-color: var(--primary); outline: none; }
 .refresh-btn.spinning { animation: spin 0.8s linear infinite; cursor: progress; }
-.hsk-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.hsk-opt {
+.quiz-example.empty { font-size: 0.9rem; color: var(--text-muted); }
+#quiz-ex-count { color: var(--primary); margin-left: 6px; }
+.example-tools { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.text-btn {
   font: inherit;
-  font-size: 20px;
+  font-size: 19px;
   letter-spacing: 1px;
-  padding: 6px 12px;
-  background: transparent;
+  background: none;
+  border: none;
   color: var(--primary);
-  border: 1px solid var(--text-muted);
-  border-radius: var(--radius);
   cursor: pointer;
+  padding: 4px 2px;
+  text-decoration: underline dashed;
+  text-underline-offset: 4px;
 }
-.hsk-opt[aria-pressed="true"] { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+.text-btn.danger { color: var(--danger); }
+.add-form { display: grid; gap: 8px; text-align: left; }
+.add-form textarea {
+  width: 100%;
+  font-family: var(--study-font);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  padding: 8px;
+  background: var(--clear-bg);
+  color: var(--clear-text);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.add-form textarea:focus { outline: none; border-color: var(--primary); }
+.add-form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.add-form-actions .btn { width: auto; }

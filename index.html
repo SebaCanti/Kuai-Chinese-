@@ -191,13 +191,24 @@
         <div id="quiz-back" class="quiz-back hidden">
           <div id="quiz-pinyin" class="quiz-pinyin"></div>
           <div id="quiz-meaning" class="quiz-meaning"></div>
-          <div class="quiz-example-label">EXAMPLE</div>
+          <div class="quiz-example-label">EXAMPLE <span id="quiz-ex-count"></span></div>
           <div class="quiz-example-row">
             <div id="quiz-example" class="quiz-example"></div>
-            <button id="quiz-refresh" class="refresh-btn" title="New example" aria-label="Show a new example">↻</button>
+            <button id="quiz-refresh" class="refresh-btn hidden" title="Next example" aria-label="Show your next example">↻</button>
           </div>
           <div id="quiz-example-pinyin" class="quiz-example-pinyin"></div>
           <div id="quiz-example-en" class="quiz-example-en"></div>
+          <div class="example-tools">
+            <button id="quiz-add" class="text-btn">+ Add sentence</button>
+            <button id="quiz-ex-delete" class="text-btn danger hidden">Delete this sentence</button>
+          </div>
+          <div id="quiz-add-form" class="add-form hidden">
+            <textarea id="quiz-add-input" rows="2" placeholder="Paste or type a Chinese sentence that uses this word"></textarea>
+            <div class="add-form-actions">
+              <button id="quiz-add-cancel" class="text-btn">Cancel</button>
+              <button id="quiz-add-save" class="btn small primary">Save</button>
+            </div>
+          </div>
         </div>
         <div class="quiz-actions">
           <button id="quiz-audio" class="btn secondary">🔊 Audio</button>
@@ -253,23 +264,12 @@
       </section>
 
       <section class="result-block">
-        <h3>&gt; EXAMPLE SENTENCES</h3>
-        <p class="settings-desc">Level of the example sentences on flash cards (the ↻ button picks another one). Starts at HSK 3–4.</p>
-        <div class="hsk-grid" role="group" aria-label="HSK level">
-          <button class="hsk-opt" data-hsk="4" aria-pressed="true">HSK 3–4</button>
-          <button class="hsk-opt" data-hsk="5" aria-pressed="false">Up to HSK 5</button>
-          <button class="hsk-opt" data-hsk="6" aria-pressed="false">Up to HSK 6</button>
-        </div>
-      </section>
-
-      <section class="result-block">
         <h3>&gt; ABOUT</h3>
         <p class="settings-desc">Kuai Chinese 快中文 v1.4 — Learn Chinese fast with Pinyin, translations and a personal dictionary.</p>
       </section>
     </main>
   </div>
 
-  <script src="sentences.js?v=8"></script>
   <script src="app.js?v=8"></script>
   <script>
     if ('serviceWorker' in navigator) {
