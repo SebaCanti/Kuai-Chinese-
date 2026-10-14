@@ -290,7 +290,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=14', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=15', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -312,6 +312,11 @@
     try { return fn(word, { toneType: 'symbol' }).replace(/\s+/g, ''); } catch (e) { return word; }
   }
 
+  // Adverb + verb pairs that the word list also has as rare words
+  // (都会 "metropolis"); in sentences they are almost always two words.
+  const NO_JOIN = new Set(['都会', '也会', '就会', '才会', '还会', '都要', '也要', '都有', '也有',
+    '都在', '也在', '就在', '都是', '也是', '又是', '才是']);
+
   // Longest match first against the word list, up to 4 characters.
   function segmentWithCedict(text, dict) {
     const out = [];
@@ -321,7 +326,8 @@
       if (!/[\u4e00-\u9fff\u3400-\u4dbf]/.test(chars[i])) { i++; continue; }
       let len = Math.min(4, chars.length - i);
       for (; len > 1; len--) {
-        if (dict.has(chars.slice(i, i + len).join(''))) break;
+        const w = chars.slice(i, i + len).join('');
+        if (dict.has(w) && !NO_JOIN.has(w)) break;
       }
       const word = chars.slice(i, i + len).join('');
       out.push({ origin: word, result: wordPinyin(word) });
@@ -354,37 +360,35 @@
     return best;
   }
 
-  // Turns segments into table rows with a meaning each. A compound whose senses
-  // don't fit the sentence (不想 "unexpectedly") is split into its characters
-  // when those do fit (不 "not" + 想 "to want").
+  // Turns segments into table rows with a meaning each. Compound words always
+  // stay together. When none of a compound's senses fit the sentence
+  // (不想 "unexpectedly"), we ask Google for that word on its own ("don't want").
   async function wordsInContext(segs, englishText) {
     const dict = await loadCedict();
     const context = new Set(contentWords(englishText));
     const rows = [];
-    const missing = [];
+    const ask = [];
     segs.forEach(s => {
-      const senses = dict && dict.get(s.origin);
-      if (!senses) {
-        rows.push({ char: s.origin, pinyin: s.result, en: null });
-        missing.push(s.origin);
-        return;
+      const senses = dict && dict.has(s.origin) ? dict.get(s.origin).split('|').filter(Boolean) : [];
+      const pick = senses.length ? pickSense(senses, context) : null;
+      const row = { char: s.origin, pinyin: s.result, en: pick ? pick.text : '' };
+      if (!pick || (pick.score === 0 && Array.from(s.origin).length > 1)) {
+        row.fallback = row.en;
+        row.en = null;
+        ask.push(s.origin);
       }
-      const pick = pickSense(senses.split('|'), context);
-      const chars = Array.from(s.origin);
-      if (pick.score === 0 && chars.length > 1 && chars.every(c => dict.has(c))) {
-        const parts = chars.map(c => ({ char: c, pick: pickSense(dict.get(c).split('|'), context) }));
-        if (parts.some(p => p.pick.score > 0)) {
-          parts.forEach(p => rows.push({ char: p.char, pinyin: wordPinyin(p.char), en: p.pick.text }));
-          return;
-        }
-      }
-      rows.push({ char: s.origin, pinyin: s.result, en: pick.text });
+      rows.push(row);
     });
-    if (missing.length) {
-      const fromGoogle = await translateWords(missing, 'en');
-      rows.forEach(r => { if (r.en === null) r.en = fromGoogle[r.char] || ''; });
+    if (ask.length) {
+      const fromGoogle = await translateWords(ask, 'en');
+      rows.forEach(r => {
+        if (r.en !== null) return;
+        let g = (fromGoogle[r.char] || '').trim();
+        if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
+        r.en = g && g !== r.char ? g : r.fallback;
+      });
     }
-    return rows.map(r => ({ ...r, es: '' }));
+    return rows.map(({ fallback, ...r }) => ({ ...r, es: '' }));
   }
 
 
