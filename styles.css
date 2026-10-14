@@ -238,8 +238,8 @@ html, body {
   to { opacity: 1; }
 }
 
-/* ===== Animated nerd kid behind his laptop, sipping coffee ===== */
-.nerd-scene {
+/* ===== Animated nerd kid with headphones, typing at a retro CRT, coffee beside it ===== */
+.ns {
   display: block;
   width: 100%;
   max-width: 300px;
@@ -248,81 +248,44 @@ html, body {
   overflow: visible;
   filter: drop-shadow(0 0 4px var(--primary-glow));
 }
-.nerd-scene * {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.nerd-scene .body { fill: var(--bg-secondary); stroke: var(--primary); stroke-width: 2; }
-.nerd-scene .hood { fill: none; stroke: var(--primary); stroke-width: 1.5; opacity: 0.7; }
-.nerd-scene .ear,
-.nerd-scene .face { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
-.nerd-scene .hair { fill: var(--primary); stroke: var(--primary); stroke-width: 1.5; }
-.nerd-scene .eye { fill: var(--primary); transform-box: fill-box; transform-origin: center; animation: nerdEyes 6s infinite; }
-.nerd-scene .glasses { fill: var(--accent-glow); fill-opacity: 0.25; stroke: var(--primary); stroke-width: 2.2; }
-.nerd-scene .glasses path { fill: none; }
-.nerd-scene .reflect path { stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; animation: codeReflect 1.4s steps(3) infinite; }
-.nerd-scene .reflect .r2 { animation-delay: -0.7s; }
-.nerd-scene .mouth { fill: none; stroke: var(--primary); stroke-width: 1.8; animation: nerdMouth 6s infinite; }
-.nerd-scene .blush { fill: var(--primary); opacity: 0.25; }
-
-.nerd-scene .lid { fill: var(--bg-secondary); stroke: var(--primary); stroke-width: 2.2; }
-.nerd-scene .lid-logo {
-  fill: var(--primary);
-  font: 700 24px "Noto Sans SC", sans-serif;
-  text-anchor: middle;
-  animation: logoPulse 2.4s ease-in-out infinite;
-}
-.nerd-scene .base { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
-.nerd-scene .desk { stroke: var(--card-border); stroke-width: 2; stroke-dasharray: 4 4; }
-
-.nerd-scene .arm { fill: none; stroke: var(--primary); stroke-width: 9; }
-.nerd-scene .hand { fill: var(--primary); }
-.nerd-scene .cup,
-.nerd-scene .handle { fill: var(--card); stroke: var(--accent); stroke-width: 2.2; }
-.nerd-scene .handle { fill: none; stroke-width: 3; }
-.nerd-scene .cup-band { stroke: var(--accent); stroke-width: 1.5; opacity: 0.6; }
-.nerd-scene .steam path { fill: none; stroke: var(--accent); stroke-width: 1.6; opacity: 0; animation: steam 2.4s ease-in-out infinite; }
-.nerd-scene .steam .s2 { animation-delay: 0.8s; }
-.nerd-scene .steam .s3 { animation-delay: 1.6s; }
-
-.nerd-scene .glyph { fill: var(--text-muted); font: 14px VT323, monospace; opacity: 0; animation: glyphFloat 5s ease-in-out infinite; }
-.nerd-scene .glyph.g2 { font: 700 13px "Noto Sans SC", sans-serif; animation-delay: 1.2s; }
-.nerd-scene .glyph.g3 { animation-delay: 2.5s; }
-.nerd-scene .glyph.g4 { animation-delay: 3.7s; }
-
-/* Blink once, then close eyes happily while sipping (synced with the 6s sip loop) */
-@keyframes nerdEyes {
-  0%, 18%, 22%, 52%, 86%, 100% { transform: scaleY(1); }
-  20% { transform: scaleY(0.1); }
-  58%, 80% { transform: scaleY(0.15); }
-}
-@keyframes nerdMouth {
-  0%, 52%, 86%, 100% { opacity: 1; }
-  58%, 80% { opacity: 0; }
-}
-@keyframes codeReflect {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(6px); }
-}
-@keyframes logoPulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-}
-@keyframes steam {
-  0% { opacity: 0; transform: translateY(4px); }
-  40% { opacity: 0.8; }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-@keyframes glyphFloat {
-  0% { opacity: 0; transform: translateY(8px); }
-  30%, 60% { opacity: 0.8; }
-  100% { opacity: 0; transform: translateY(-16px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .nerd-scene * { animation: none !important; }
-  .nerd-scene .steam path, .nerd-scene .glyph { opacity: 0.6; }
-}
+.ns * { stroke-linecap: round; stroke-linejoin: round; }
+.ns .ln { fill: none; stroke: var(--primary); stroke-width: 2; }
+.ns .dim { stroke: var(--text-muted); opacity: .8; }
+.ns .fb { fill: var(--bg-secondary); stroke: var(--primary); stroke-width: 2; }
+.ns .ff { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
+.ns .solid { fill: var(--primary); stroke: var(--primary); stroke-width: 1.5; }
+.ns .glass { fill: var(--accent-glow); fill-opacity: .3; stroke: var(--primary); stroke-width: 2.2; }
+.ns .eye { fill: var(--primary); transform-box: fill-box; transform-origin: center; animation: nsBlink 4s infinite; }
+.ns .arm { fill: none; stroke: var(--primary); stroke-width: 8; }
+.ns .arm.far { opacity: .45; }
+.ns .hand { fill: var(--primary); }
+.ns .hand.far { opacity: .45; }
+.ns .ha { animation: nsType .22s ease-in-out infinite alternate; }
+.ns .hb { animation: nsType .22s ease-in-out infinite alternate-reverse; }
+.ns .cl { stroke: var(--accent); stroke-width: 2.4; opacity: .55; }
+.ns .cl.hl { stroke: var(--primary); opacity: .9; }
+.ns .scroll { animation: nsScroll 3.6s steps(12) infinite; }
+.ns .beam { fill: var(--primary); opacity: .06; animation: nsBeam 2.6s ease-in-out infinite; }
+.ns .cup { fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+.ns .handle { fill: none; stroke: var(--accent); stroke-width: 2.6; }
+.ns .band { stroke: var(--accent); stroke-width: 1.4; opacity: .6; }
+.ns .steam path { fill: none; stroke: var(--accent); stroke-width: 1.5; opacity: 0; animation: nsSteam 2.4s ease-in-out infinite; }
+.ns .steam .s2 { animation-delay: .8s; }
+.ns .steam .s3 { animation-delay: 1.6s; }
+.ns .led { fill: var(--primary); animation: nsBeam 1s steps(2) infinite; }
+.ns .phones { fill: none; stroke: var(--primary); stroke-width: 4; }
+.ns .cupL { fill: var(--primary); }
+.ns .lid { fill: none; stroke: var(--primary); stroke-width: 4; }
+.ns .glyph { fill: var(--text-muted); font: 14px VT323, monospace; opacity: 0; animation: nsGlyph 5s ease-in-out infinite; }
+.ns .glyph.g2 { font: 700 13px "Noto Sans SC", sans-serif; animation-delay: 1.6s; }
+.ns .glyph.g3 { animation-delay: 3.2s; }
+@keyframes nsBlink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+@keyframes nsType { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+@keyframes nsScroll { from { transform: translateY(0); } to { transform: translateY(-36px); } }
+@keyframes nsBeam { 0%, 100% { opacity: .05; } 50% { opacity: .12; } }
+@keyframes nsSteam { 0% { opacity: 0; transform: translateY(4px); } 40% { opacity: .8; } 100% { opacity: 0; transform: translateY(-10px); } }
+@keyframes nsGlyph { 0% { opacity: 0; transform: translateY(8px); } 30%, 60% { opacity: .8; } 100% { opacity: 0; transform: translateY(-16px); } }
+@media (prefers-reduced-motion: reduce) { .ns * { animation: none !important; } .ns .steam path, .ns .glyph { opacity: .6; } }
 
 /* Paste Zone */
 .paste-zone {

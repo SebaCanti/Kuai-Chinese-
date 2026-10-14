@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -42,76 +42,43 @@
     <!-- Translate Tab -->
     <main id="tab-translate" class="tab-content active">
       <div id="paste-zone" class="paste-zone">
-        <!-- Animated nerd kid: behind his laptop, sipping coffee -->
-        <svg class="nerd-scene" viewBox="0 0 240 150" aria-hidden="true">
-          <!-- floating code glyphs -->
-          <g class="glyphs">
-            <text class="glyph g1" x="40" y="70">{ }</text>
-            <text class="glyph g2" x="196" y="56">快</text>
-            <text class="glyph g3" x="22" y="40">&lt;/&gt;</text>
-            <text class="glyph g4" x="210" y="92">01</text>
-          </g>
-
-          <!-- kid -->
-          <g class="kid">
-            <path class="body" d="M66 140 C66 104 82 88 110 88 C138 88 154 104 154 140 Z" />
-            <path class="hood" d="M94 89 Q110 100 126 89" />
-            <circle class="ear" cx="85" cy="50" r="5" />
-            <circle class="ear" cx="135" cy="50" r="5" />
-            <circle class="face" cx="110" cy="48" r="24" />
-            <path class="hair" d="M86 41 Q84 21 104 20 Q100 12 112 16 Q118 8 122 18 Q138 20 134 39 Q127 30 117 32 Q112 27 106 32 Q95 30 86 41 Z" />
-            <g class="eyes">
-              <circle class="eye" cx="100" cy="51" r="2.2" />
-              <circle class="eye" cx="120" cy="51" r="2.2" />
-            </g>
-            <g class="glasses">
-              <circle cx="100" cy="51" r="8.5" />
-              <circle cx="120" cy="51" r="8.5" />
-              <path d="M108.5 50 Q110 48 111.5 50 M91.5 50 L86 47 M128.5 50 L134 47" />
-            </g>
-            <g class="reflect">
-              <path class="r1" d="M95 48 H104" />
-              <path class="r2" d="M115 48 H125" />
-            </g>
-            <path class="mouth" d="M105 62 Q110 66 115 62" />
-            <circle class="blush" cx="94" cy="60" r="2.5" />
-            <circle class="blush" cx="126" cy="60" r="2.5" />
-          </g>
-
-          <!-- laptop (seen from behind) -->
-          <g class="laptop">
-            <rect class="lid" x="58" y="80" width="104" height="54" rx="4" />
-            <text class="lid-logo" x="110" y="115">快</text>
-            <rect class="base" x="50" y="134" width="120" height="6" rx="2" />
-          </g>
-          <path class="desk" d="M10 140 H230" />
-
-          <!-- arm + coffee mug, sipping on a loop -->
-          <path class="arm" d="M156 102 Q176 108 184 118">
-            <animate attributeName="d" dur="6s" repeatCount="indefinite"
-              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
-              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
-              values="M156 102 Q176 108 184 118;M156 102 Q176 108 184 118;M156 102 Q178 98 121 77;M156 102 Q178 98 121 77;M156 102 Q176 108 184 118;M156 102 Q176 108 184 118" />
-          </path>
-          <g class="mug">
-            <animateTransform attributeName="transform" type="translate" dur="6s" repeatCount="indefinite"
-              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
-              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
-              values="0 0;0 0;-64 -46;-64 -46;0 0;0 0" />
-            <animateTransform attributeName="transform" type="rotate" additive="sum" dur="6s" repeatCount="indefinite"
-              keyTimes="0;0.45;0.6;0.8;0.92;1" calcMode="spline"
-              keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"
-              values="0 194 118;0 194 118;-28 194 118;-28 194 118;0 194 118;0 194 118" />
-            <path class="handle" d="M203 112 Q212 112 212 118 Q212 124 203 124" />
-            <rect class="cup" x="184" y="106" width="20" height="23" rx="3" />
-            <path class="cup-band" d="M184 113 H204" />
-            <circle class="hand" cx="185" cy="119" r="5" />
-            <g class="steam">
-              <path class="s1" d="M189 102 Q186 96 189 90 Q192 84 189 78" />
-              <path class="s2" d="M195 102 Q192 95 195 88 Q198 81 195 74" />
-              <path class="s3" d="M201 102 Q198 96 201 90 Q204 84 201 78" />
-            </g>
-          </g>
+        <!-- Animated nerd kid with headphones, typing at a retro CRT, coffee on the desk -->
+        <svg class="nerd-scene ns" viewBox="0 0 240 150" aria-hidden="true">
+          <polygon class="beam" points="88,62 88,100 140,72 140,40"/>
+          <rect class="fb" x="4" y="114" width="150" height="6" rx="2"/>
+          <path class="ln dim" d="M12 120 V144 M146 120 V144"/>
+          <polygon class="fb" points="36,54 20,60 20,98 36,104"/>
+          <polygon class="fb" points="36,54 88,60 88,100 36,104"/>
+          <clipPath id="c2"><polygon points="42,61 82,65 82,94 42,97"/></clipPath>
+          <g clip-path="url(#c2)"><g transform="translate(0 -5.9) skewY(8)"><g class="scroll"><path class="cl" d="M46 62 H70"/>
+        <path class="cl" d="M52 68 H70"/>
+        <path class="cl hl" d="M52 74 H79"/>
+        <path class="cl" d="M58 80 H70"/>
+        <path class="cl" d="M46 86 H61"/>
+        <path class="cl" d="M52 92 H73"/>
+        <path class="cl" d="M46 98 H70"/>
+        <path class="cl" d="M52 104 H70"/>
+        <path class="cl hl" d="M52 110 H79"/>
+        <path class="cl" d="M58 116 H70"/>
+        <path class="cl" d="M46 122 H61"/>
+        <path class="cl" d="M52 128 H73"/></g></g></g>
+          <polygon class="fb" points="40,104 84,100 90,114 34,114"/>
+          <circle class="led" cx="80" cy="97" r="1.4"/>
+          <path class="handle" d="M8 100 q-7 0 -7 6 q0 6 7 6"/><rect class="cup" x="8" y="96" width="14" height="18" rx="2.5"/><path class="band" d="M8 102 h14"/><g class="steam"><path class="s1" d="M10 92 q-3 -6 0 -12 q3 -6 0 -12"/><path class="s2" d="M15 92 q-3 -7 0 -14 q3 -7 0 -14"/><path class="s3" d="M20 92 q-3 -6 0 -12 q3 -6 0 -12"/></g>
+          <path class="arm far" d="M176 92 Q156 106 128 109"/><circle class="hand far hb" cx="126" cy="109" r="4"/>
+          <path class="ln dim" d="M196 70 Q204 98 198 126 M176 126 H212 M194 126 V142 M180 142 H210"/>
+          <path class="fb" d="M140 128 C138 100 148 80 164 78 C180 80 190 98 188 128 Z"/>
+          <circle class="ff" cx="182" cy="54" r="4.5"/>
+          <circle class="ff" cx="161" cy="51" r="21"/>
+          <path class="solid" d="M141 46 Q142 26 164 28 Q186 30 184 54 Q178 44 172 40 Q166 34 158 38 Q150 34 141 46 Z"/>
+          <circle class="eye" cx="148" cy="54" r="2"/><circle class="eye" cx="165" cy="54" r="2"/>
+          <circle class="glass" cx="148" cy="54" r="7"/><circle class="glass" cx="166" cy="54" r="8"/>
+          <path class="ln" d="M155 53 Q157 51 158 53 M174 53 L182 50"/>
+          <path class="ln mouth" d="M147 66 Q152 69 157 66"/>
+          <path class="phones" d="M140 40 Q144 22 162 22 Q184 22 183 46"/>
+          <rect class="cupL" x="176" y="44" width="12" height="19" rx="5"/>
+          <path class="arm" d="M150 92 Q136 108 116 112"/><circle class="hand ha" cx="114" cy="111" r="4.5"/>
+          <polygon class="fb" points="98,114 138,114 136,110 100,110"/>
         </svg>
 
         <p class="paste-hint">&gt; PRESS AND HOLD TO PASTE</p>
@@ -229,7 +196,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

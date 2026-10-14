@@ -34,7 +34,7 @@ A PWA to learn Chinese fast.
 
 - UI uses the same CRT terminal format as Kuai Temperature: `VT323` for the interface and `Noto Sans SC` for the 快中文 logo, with scanlines and `[ BRACKETED ]` buttons.
 - Study text (input, translations, characters, Pinyin and meanings) stays in a plain monospace font so it is easy to read.
-- The animation in the middle is an inline SVG: a nerd kid behind his laptop sipping coffee.
+- The animation in the middle is an inline SVG: a nerd kid with headphones typing at a retro CRT, with his coffee steaming on the desk.
 
 ## Files
 
