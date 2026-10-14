@@ -456,36 +456,18 @@
     ['known', 'new', 'learning'].forEach(status => {
       const items = dict.filter(d => d.status === status);
       $(`#count-${status}`).textContent = items.length;
+      // Compact chips: just the characters. Tapping one opens its full flash card.
       $(`#col-${status}`).innerHTML = items.map(item => `
-        <div class="flash" data-id="${item.id}">
-          <button class="flash-face" data-action="flip" title="Flip">
-            <span class="flash-char">${escapeHtml(item.char)}</span>
-            <span class="flash-back">
-              <span class="flash-pinyin">${escapeHtml(item.pinyin)}</span>
-              <span class="flash-meaning">${escapeHtml(item.en)}</span>
-            </span>
-          </button>
-          <div class="flash-tools">
-            <button class="speak-btn" data-speak="${escapeHtml(item.char)}" title="Play audio" aria-label="Play audio">🔊</button>
-            <button class="flash-btn" data-action="flip">Flip</button>
-            <button class="flash-del" data-action="delete" title="Delete" aria-label="Delete">×</button>
-          </div>
-          <button class="flash-btn known" data-action="known" ${status === 'known' ? 'disabled' : ''}>Memorized</button>
-          <button class="flash-btn learning" data-action="learning" ${status === 'learning' ? 'disabled' : ''}>Not memorized</button>
-        </div>
+        <button class="chip" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${escapeHtml(item.char)}</button>
       `).join('');
     });
   }
 
   dictBoard.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const card = btn.closest('.flash');
-    const id = Number(card.dataset.id);
-    const action = btn.dataset.action;
-    if (action === 'flip') card.classList.toggle('flipped');
-    else if (action === 'delete') removeFromDict(id);
-    else setStatus(id, action);
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const item = getDict().find(d => d.id === Number(chip.dataset.id));
+    if (item) openWordCard(item);
   });
 
   // Any speaker button anywhere plays its data-speak text
@@ -501,6 +483,35 @@
   // ---------- Random flash card quiz ----------
   const quiz = $('#quiz');
   let quizItem = null;
+  let quizMode = 'random'; // 'random' | 'word'
+
+  function showCard(item) {
+    quizItem = item;
+    $('#quiz-char').textContent = item.char;
+    $('#quiz-pinyin').textContent = item.pinyin;
+    $('#quiz-meaning').textContent = item.en;
+    $('#quiz-example').textContent = item.example || '—';
+    $('#quiz-example-en').textContent = item.exampleEn || '';
+    $('#quiz-back').classList.add('hidden');
+    $('#quiz-flip').textContent = 'Flip card';
+    $('#quiz-known').disabled = quizMode === 'word' && item.status === 'known';
+    $('#quiz-learning').disabled = quizMode === 'word' && item.status === 'learning';
+  }
+
+  function openWordCard(item) {
+    quizMode = 'word';
+    $('#quiz-title').textContent = '> WORD CARD';
+    $('#quiz-next').classList.add('hidden');
+    $('#quiz-delete').classList.remove('hidden');
+    quiz.classList.remove('hidden');
+    showCard(item);
+  }
+
+  // After marking a word: random mode moves on, word mode closes the card.
+  function afterMark() {
+    if (quizMode === 'random') nextQuizCard();
+    else closeQuiz();
+  }
 
   function nextQuizCard() {
     const dict = getDict();
@@ -509,18 +520,15 @@
     if (dict.length > 1 && quizItem && pick.id === quizItem.id) {
       pick = dict[(dict.indexOf(pick) + 1) % dict.length];
     }
-    quizItem = pick;
-    $('#quiz-char').textContent = pick.char;
-    $('#quiz-pinyin').textContent = pick.pinyin;
-    $('#quiz-meaning').textContent = pick.en;
-    $('#quiz-example').textContent = pick.example || '—';
-    $('#quiz-example-en').textContent = pick.exampleEn || '';
-    $('#quiz-back').classList.add('hidden');
-    $('#quiz-flip').textContent = 'Flip card';
+    showCard(pick);
     speak(pick.char);
   }
 
   function openQuiz() {
+    quizMode = 'random';
+    $('#quiz-title').textContent = '> RANDOM CARD';
+    $('#quiz-next').classList.remove('hidden');
+    $('#quiz-delete').classList.add('hidden');
     quiz.classList.remove('hidden');
     nextQuizCard();
   }
@@ -544,13 +552,18 @@
     if (!quizItem) return;
     setStatus(quizItem.id, 'known');
     showToast('Marked as memorized');
-    nextQuizCard();
+    afterMark();
   });
   $('#quiz-learning').addEventListener('click', () => {
     if (!quizItem) return;
     setStatus(quizItem.id, 'learning');
     showToast('Marked as not memorized');
-    nextQuizCard();
+    afterMark();
+  });
+  $('#quiz-delete').addEventListener('click', () => {
+    if (!quizItem) return;
+    removeFromDict(quizItem.id);
+    closeQuiz();
   });
 
   // ---------- Helpers ----------

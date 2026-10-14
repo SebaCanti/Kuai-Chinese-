@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -192,6 +192,7 @@
           <button id="quiz-known" class="btn small">Memorized</button>
           <button id="quiz-learning" class="btn small danger">Not memorized</button>
           <button id="quiz-next" class="btn small secondary">Next</button>
+          <button id="quiz-delete" class="btn small secondary hidden">Delete</button>
         </div>
       </div>
     </div>
@@ -241,7 +242,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
