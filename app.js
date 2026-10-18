@@ -133,8 +133,11 @@
     let items;
     try { items = JSON.parse(localStorage.getItem(STORAGE_DICT) || '[]'); }
     catch { items = []; }
+    const mine = getMine(STORAGE_MY_MEANINGS);
     return items.map(d => {
       const w = { status: 'new', ...d };
+      // Your own meaning for a word always wins, even if sync brings back an older copy of the card
+      if (mine[w.char] && mine[w.char].en) w.en = mine[w.char].en;
       // Example sentences are only ones you added: the phrase you saved the word from, or
       // sentences you add on its card. Older versions stored one example (sometimes made up by
       // the app); keep it only if it was your phrase.
@@ -311,7 +314,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=24', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=25', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -357,7 +360,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=24', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=25', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
