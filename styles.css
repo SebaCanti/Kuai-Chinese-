@@ -1162,7 +1162,7 @@ body::after {
 .quiz-pinyin { font-family: var(--study-font); font-size: 1.4rem; font-weight: 600; color: var(--primary); }
 .quiz-meaning { font-family: var(--study-font); font-size: 1.1rem; color: var(--clear-text); text-shadow: none; }
 .quiz-example-label { font-size: 17px; letter-spacing: 2px; color: var(--text-muted); text-shadow: none; margin-top: 6px; }
-.quiz-example { font-family: var(--study-font); font-size: 1.1rem; line-height: 1.5; color: var(--clear-text); background: var(--clear-bg); padding: 8px; border-radius: var(--radius); text-shadow: none; }
+.quiz-example { font-family: var(--study-font); font-size: 1.6rem; line-height: 1.45; color: var(--clear-text); background: var(--clear-bg); padding: 10px 8px; border-radius: var(--radius); text-shadow: none; }
 .quiz-example-en { font-family: var(--study-font); font-size: 0.9rem; line-height: 1.4; color: var(--text-muted); text-shadow: none; }
 .quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .quiz-actions .btn { flex: 1 1 0; width: auto; min-width: 0; }
