@@ -308,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=20', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=21', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -806,6 +806,7 @@
     $('#quiz-pinyin').textContent = item.pinyin;
     renderCardMeaning(item);
     $('#quiz-meaning-form').classList.add('hidden');
+    $('#quiz-char-form').classList.add('hidden');
     exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
@@ -1101,6 +1102,40 @@
     renderDictionary();
     showToast(list.length > 1 ? `${list.length} meanings saved ✓` : 'Meaning saved ✓');
   }
+
+  // ---------- Fix the Chinese word itself on the card ----------
+  function openCardCharEdit() {
+    $('#quiz-char-input').value = quizItem.char;
+    $('#quiz-char-form').classList.remove('hidden');
+    $('#quiz-char-input').focus();
+  }
+
+  function saveCardChar() {
+    const char = ($('#quiz-char-input').value.match(/\p{Script=Han}/gu) || []).join('');
+    if (!char) { showToast('Write the word in Chinese characters'); return; }
+    if (char === quizItem.char) { $('#quiz-char-form').classList.add('hidden'); return; }
+    const dict = getDict();
+    if (dict.some(d => d.char === char)) { showToast(`${char} is already in your dictionary`); return; }
+    const item = dict.find(d => d.id === quizItem.id);
+    if (!item) return;
+    // Memorized status, meanings and sentences stay with the card
+    item.char = char;
+    item.pinyin = wordPinyin(char);
+    saveDict(dict);
+    quizItem.char = item.char;
+    quizItem.pinyin = item.pinyin;
+    $('#quiz-char').textContent = item.char;
+    $('#quiz-pinyin').textContent = item.pinyin;
+    $('#quiz-char-form').classList.add('hidden');
+    renderDictionary();
+    if (currentResult) renderResults();
+    showToast('Word saved ✓');
+  }
+
+  $('#quiz-char-edit').addEventListener('click', openCardCharEdit);
+  $('#quiz-char-cancel').addEventListener('click', () => $('#quiz-char-form').classList.add('hidden'));
+  $('#quiz-char-save').addEventListener('click', saveCardChar);
+  $('#quiz-char-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveCardChar(); });
 
   $('#quiz-meaning-edit').addEventListener('click', openCardMeaningEdit);
   $('#quiz-meaning-cancel').addEventListener('click', () => $('#quiz-meaning-form').classList.add('hidden'));

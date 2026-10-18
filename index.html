@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=20" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=20" />
+  <link rel="icon" href="icon.svg?v=21" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=21" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=20" />
+  <link rel="stylesheet" href="styles.css?v=21" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -198,7 +198,17 @@
           <span id="quiz-title">&gt; RANDOM CARD</span>
           <button id="quiz-close" class="quiz-x" aria-label="Close">×</button>
         </div>
-        <div id="quiz-char" class="quiz-char"></div>
+        <div class="quiz-char-wrap">
+          <div id="quiz-char" class="quiz-char"></div>
+          <button id="quiz-char-edit" class="edit-btn quiz-char-edit" title="Edit Chinese word" aria-label="Edit Chinese word">✎</button>
+        </div>
+        <div id="quiz-char-form" class="add-form hidden">
+          <input id="quiz-char-input" type="text" lang="zh" placeholder="Chinese word" aria-label="Chinese word" />
+          <div class="add-actions">
+            <button class="text-btn" id="quiz-char-cancel">Cancel</button>
+            <button class="btn primary small" id="quiz-char-save">Save</button>
+          </div>
+        </div>
         <div id="quiz-back" class="quiz-back hidden">
           <div id="quiz-pinyin" class="quiz-pinyin"></div>
           <div class="quiz-meaning-row">
@@ -249,7 +259,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; SETTINGS <span class="app-version">v20</span></h2>
+        <h2>&gt; SETTINGS <span class="app-version">v21</span></h2>
       </div>
 
       <section class="result-block">
@@ -303,12 +313,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v20</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v21</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
