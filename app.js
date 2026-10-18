@@ -308,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=19', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=21', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -548,7 +548,7 @@
     if (currentResult.isChinese) {
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
-      fullEnglish.textContent = currentResult.englishFull;
+      fullEnglish.textContent = capFirst(currentResult.englishFull);
       fullEnglish.classList.toggle('mine', !!myText(STORAGE_MY_SENTENCES, currentResult.original));
       fullEnglish.classList.remove('hidden');
       $('#edit-full').classList.remove('hidden');
@@ -587,7 +587,7 @@
 
     currentResult.words.forEach((w, idx) => {
       const tr = document.createElement('tr');
-      const meaning = meaningLang === 'en' ? w.en : (w.es || '…');
+      const meaning = capFirst(meaningLang === 'en' ? w.en : (w.es || '…'));
       const saved = isInDict(w.char);
 
       tr.innerHTML = `
@@ -645,7 +645,7 @@
       currentResult.spanishFull = await translateText(currentResult.original, 'es');
       btnShowSpanish.disabled = false;
     }
-    fullSpanish.textContent = currentResult.spanishFull;
+    fullSpanish.textContent = capFirst(currentResult.spanishFull);
     fullSpanish.classList.remove('hidden');
     btnShowSpanish.textContent = 'Hide Spanish';
   }
@@ -806,6 +806,7 @@
     $('#quiz-pinyin').textContent = item.pinyin;
     renderCardMeaning(item);
     $('#quiz-meaning-form').classList.add('hidden');
+    $('#quiz-char-form').classList.add('hidden');
     exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
@@ -824,7 +825,7 @@
     $('#quiz-example').textContent = cur ? cur.zh : 'No example yet. Add a sentence where you found this word.';
     $('#quiz-example').classList.toggle('empty', !cur);
     $('#quiz-example-pinyin').textContent = cur ? sentencePinyin(cur.zh) : '';
-    $('#quiz-example-en').textContent = cur ? cur.en : '';
+    $('#quiz-example-en').textContent = cur ? capFirst(cur.en) : '';
     $('#quiz-refresh').classList.toggle('hidden', list.length < 2);
     $('#quiz-ex-count').textContent = list.length > 1 ? `${exIdx + 1}/${list.length}` : '';
     $('#quiz-ex-delete').classList.toggle('hidden', !cur);
@@ -967,6 +968,12 @@
   });
 
   // ---------- Helpers ----------
+  // Translations are shown starting with a capital letter ("(Question particle)", "To want").
+  // Only the display changes; what is stored stays as it came.
+  function capFirst(text) {
+    return String(text || '').replace(/\p{L}/u, c => c.toUpperCase());
+  }
+
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -1070,8 +1077,8 @@
   function renderCardMeaning(item) {
     const list = splitMeanings(item.en);
     $('#quiz-meaning').innerHTML = list.length > 1
-      ? '<ol class="meaning-list">' + list.map(m => `<li>${escapeHtml(m)}</li>`).join('') + '</ol>'
-      : escapeHtml(list[0] || '');
+      ? '<ol class="meaning-list">' + list.map(m => `<li>${escapeHtml(capFirst(m))}</li>`).join('') + '</ol>'
+      : escapeHtml(capFirst(list[0] || ''));
   }
 
   function openCardMeaningEdit() {
@@ -1095,6 +1102,40 @@
     renderDictionary();
     showToast(list.length > 1 ? `${list.length} meanings saved ✓` : 'Meaning saved ✓');
   }
+
+  // ---------- Fix the Chinese word itself on the card ----------
+  function openCardCharEdit() {
+    $('#quiz-char-input').value = quizItem.char;
+    $('#quiz-char-form').classList.remove('hidden');
+    $('#quiz-char-input').focus();
+  }
+
+  function saveCardChar() {
+    const char = ($('#quiz-char-input').value.match(/\p{Script=Han}/gu) || []).join('');
+    if (!char) { showToast('Write the word in Chinese characters'); return; }
+    if (char === quizItem.char) { $('#quiz-char-form').classList.add('hidden'); return; }
+    const dict = getDict();
+    if (dict.some(d => d.char === char)) { showToast(`${char} is already in your dictionary`); return; }
+    const item = dict.find(d => d.id === quizItem.id);
+    if (!item) return;
+    // Memorized status, meanings and sentences stay with the card
+    item.char = char;
+    item.pinyin = wordPinyin(char);
+    saveDict(dict);
+    quizItem.char = item.char;
+    quizItem.pinyin = item.pinyin;
+    $('#quiz-char').textContent = item.char;
+    $('#quiz-pinyin').textContent = item.pinyin;
+    $('#quiz-char-form').classList.add('hidden');
+    renderDictionary();
+    if (currentResult) renderResults();
+    showToast('Word saved ✓');
+  }
+
+  $('#quiz-char-edit').addEventListener('click', openCardCharEdit);
+  $('#quiz-char-cancel').addEventListener('click', () => $('#quiz-char-form').classList.add('hidden'));
+  $('#quiz-char-save').addEventListener('click', saveCardChar);
+  $('#quiz-char-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveCardChar(); });
 
   $('#quiz-meaning-edit').addEventListener('click', openCardMeaningEdit);
   $('#quiz-meaning-cancel').addEventListener('click', () => $('#quiz-meaning-form').classList.add('hidden'));

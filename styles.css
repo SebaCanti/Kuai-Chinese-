@@ -1411,3 +1411,8 @@ body::after {
 #quiz-meaning-form textarea {
   font-family: var(--study-font);
 }
+
+/* Edit the Chinese word on the card */
+.quiz-char-wrap { position: relative; }
+.quiz-char-edit { position: absolute; top: 6px; right: 6px; }
+#quiz-char-input { font-family: var(--study-font); font-size: 1.4rem; width: 100%; }
