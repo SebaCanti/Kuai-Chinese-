@@ -1515,3 +1515,31 @@ body::after {
 :root[data-theme="paper"] * { text-shadow: none !important; }
 :root[data-theme="paper"] body { background: var(--bg); }
 [data-theme="paper"] { --hl-known: #3f7a3a; --hl-learning: #b23c34; }
+
+/* ---- Computer screens: Dictionary and word cards a bit larger ---- */
+@media (min-width: 900px) {
+  #tab-dictionary .section-header h2 { font-size: 34px; }
+  .dict-board { gap: 14px; }
+  .dict-col { padding: 12px 10px; gap: 12px; }
+  .dict-col h3 { font-size: 22px; }
+  .dict-col .count { font-size: 28px; }
+  .dict-cards { gap: 10px; }
+  .chip { font-size: 1.5rem; padding: 8px 12px; min-width: 52px; }
+  .pile { min-height: 170px; }
+  .pile-top { font-size: 2.2rem; }
+  .pile-count { font-size: 21px; }
+  .pos-chip { font-size: 22px; padding: 6px 14px; }
+  .dict-footer .btn { font-size: 26px; padding: 14px; }
+  #dict-empty { font-size: 24px; }
+  #deck .quiz-card, #quiz .quiz-card { max-width: 540px; }
+  .deck-list .chip { font-size: 1.6rem; }
+  .deck-hint, #deck-title, #quiz-title { font-size: 22px; }
+  .quiz-char { font-size: 5rem; }
+  .quiz-pinyin { font-size: 1.7rem; }
+  .quiz-meaning { font-size: 1.35rem; }
+  .quiz-example { font-size: 1.9rem; }
+  .quiz-example-pinyin, .quiz-example-en { font-size: 1.05rem; }
+  .pos-select { font-size: 20px; }
+  #quiz .btn { font-size: 24px; }
+  #quiz .text-btn { font-size: 22px; }
+}
