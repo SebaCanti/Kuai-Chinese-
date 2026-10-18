@@ -314,7 +314,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=26', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=27', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -360,7 +360,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=26', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=27', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -879,6 +879,7 @@
         : '<span class="pile-count">No cards yet</span>';
     });
     if (!deck.classList.contains('hidden')) renderDeck();
+    if ($('#tab-weekly').classList.contains('active')) renderWeekly();
   }
 
   function chipHtml(item) {
@@ -1192,10 +1193,85 @@
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${name}`));
     if (name === 'history') renderHistory();
     if (name === 'dictionary') renderDictionary();
+    if (name === 'weekly') renderWeekly();
     if (name === 'settings') {
       // refresh active theme highlight
       applyTheme(getSavedTheme());
     }
+  }
+
+  // ---------- Weekly Program ----------
+  // Counts the words you saved in each week (Monday to Sunday, ISO week numbers).
+  const PACES = [
+    { max: 24, cls: 'calm', label: 'Calm pace' },
+    { max: 40, cls: 'good', label: 'On track' },
+    { max: Infinity, cls: 'intense', label: 'Intense pace' }
+  ];
+  function paceOf(n) { return PACES.find(p => n <= p.max); }
+
+  function weekStart(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return d;
+  }
+  function isoWeek(monday) {
+    const thu = new Date(monday);
+    thu.setDate(thu.getDate() + 3);
+    const jan4 = new Date(thu.getFullYear(), 0, 4);
+    return { year: thu.getFullYear(), week: 1 + Math.round((thu - weekStart(jan4)) / 6048e5) };
+  }
+  function savedAt(d) {
+    const t = d.date ? Date.parse(d.date) : NaN;
+    return new Date(isNaN(t) ? (d.id || Date.now()) : t);
+  }
+  function weekRange(monday) {
+    const sun = new Date(monday);
+    sun.setDate(sun.getDate() + 6);
+    const f = x => x.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+    return `${f(monday)} – ${f(sun)}`;
+  }
+
+  function renderWeekly() {
+    const counts = new Map();
+    let first = null;
+    getDict().forEach(d => {
+      const mon = weekStart(savedAt(d));
+      const key = mon.getTime();
+      counts.set(key, (counts.get(key) || 0) + 1);
+      if (!first || mon < first) first = mon;
+    });
+    const thisMon = weekStart(new Date());
+    const weeks = [];
+    for (let m = new Date(thisMon); weeks.length < 104; m.setDate(m.getDate() - 7)) {
+      weeks.push({ mon: new Date(m), n: counts.get(m.getTime()) || 0 });
+      if (!first || m <= first) break;
+    }
+
+    const now = weeks[0];
+    const pace = paceOf(now.n);
+    const wk = isoWeek(now.mon);
+    const pct = Math.min(100, now.n / 50 * 100);
+    $('#week-now').innerHTML = `
+      <h3>&gt; THIS WEEK · WEEK ${wk.week}</h3>
+      <p class="week-dates">${weekRange(now.mon)}, ${wk.year}</p>
+      <div class="week-big"><span class="week-count">${now.n}</span> word${now.n === 1 ? '' : 's'} <span class="pace ${pace.cls}">${pace.label}</span></div>
+      <div class="week-bar" role="img" aria-label="${now.n} of 25 to 40 words">
+        <div class="week-fill ${pace.cls}" style="width:${pct}%"></div>
+        <span class="week-mark" style="left:50%"><span>25</span></span>
+        <span class="week-mark" style="left:80%"><span>40</span></span>
+      </div>
+      <p class="week-hint">${now.n < 25 ? `${25 - now.n} more to be on track` : now.n <= 40 ? 'Good rhythm, keep going' : 'Very intense week'}</p>`;
+
+    $('#week-list').innerHTML = weeks.map((w, i) => {
+      const p = paceOf(w.n);
+      const iw = isoWeek(w.mon);
+      return `<div class="week-row${i === 0 ? ' current' : ''}">
+        <span class="week-num">Week ${iw.week}</span>
+        <span class="week-range">${weekRange(w.mon)}${iw.year !== wk.year ? ', ' + iw.year : ''}</span>
+        <span class="week-n">${w.n}</span>
+        <span class="pace ${p.cls}">${p.label}</span>
+      </div>`;
+    }).join('');
   }
 
   // ---------- Clipboard long-press ----------

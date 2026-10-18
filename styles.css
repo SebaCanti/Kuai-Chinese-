@@ -1569,3 +1569,68 @@ body::after {
   #tab-dictionary .section-header h2 { font-size: 24px; }
   .dict-col h3 { font-size: 16px; }
 }
+
+/* ---- Weekly Program ---- */
+.tab-short { display: none; }
+@media (max-width: 700px) {
+  .tab-long { display: none; }
+  .tab-short { display: inline; }
+}
+.week-now h3, .week-list + h3 { margin-bottom: 4px; }
+.week-dates { color: var(--text-muted); font-size: 19px; text-shadow: none; }
+.week-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; font-size: 22px; }
+.week-count { font-size: 64px; line-height: 1; color: var(--primary); }
+.pace {
+  font-family: var(--label-font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  text-shadow: none;
+}
+.pace.calm { color: var(--accent); }
+.pace.good { color: var(--success); }
+.pace.intense { color: var(--danger); }
+.week-bar {
+  position: relative;
+  height: 14px;
+  margin: 0 0 26px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+}
+.week-fill { height: 100%; border-radius: 999px; background: var(--accent); }
+.week-fill.good { background: var(--success); }
+.week-fill.intense { background: var(--danger); }
+.week-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--text-muted); }
+.week-mark span { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); font-size: 16px; color: var(--text-muted); text-shadow: none; }
+.week-hint { color: var(--text-muted); font-size: 19px; text-shadow: none; }
+.week-list { display: grid; gap: 4px; margin-top: 8px; }
+.week-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px dashed var(--card-border);
+  font-size: 20px;
+}
+.week-row.current { background: var(--bg-secondary); }
+.week-num { color: var(--primary); }
+.week-range { color: var(--text-muted); text-shadow: none; font-size: 18px; }
+.week-n { font-size: 24px; min-width: 2ch; text-align: right; }
+.week-legend { margin: 14px 4px 0; font-size: 18px; line-height: 1.9; color: var(--text-muted); text-shadow: none; }
+@media (max-width: 420px) {
+  .week-row { grid-template-columns: auto 1fr auto; }
+  .week-row .pace { grid-column: 2 / 4; justify-self: end; }
+}
+
+/* ---- Computer screens: use the side space ---- */
+@media (min-width: 900px) {
+  #app { max-width: 1180px; }
+  .tab-content { padding: 20px 28px; }
+}
