@@ -1,14 +1,14 @@
-const CACHE_NAME = 'kuai-chinese-v23';
+const CACHE_NAME = 'kuai-chinese-v24';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=23',
-  './app.js?v=23',
+  './styles.css?v=24',
+  './app.js?v=24',
   './manifest.json',
-  './icon-192.png?v=23',
-  './icon-512.png?v=23',
-  './icon.svg?v=23',
-  './apple-touch-icon.png?v=23'
+  './icon-192.png?v=24',
+  './icon-512.png?v=24',
+  './icon.svg?v=24',
+  './apple-touch-icon.png?v=24'
 ];
 
 self.addEventListener('install', (event) => {
