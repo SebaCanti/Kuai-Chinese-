@@ -308,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=19', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=20', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -548,7 +548,7 @@
     if (currentResult.isChinese) {
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
-      fullEnglish.textContent = currentResult.englishFull;
+      fullEnglish.textContent = capFirst(currentResult.englishFull);
       fullEnglish.classList.toggle('mine', !!myText(STORAGE_MY_SENTENCES, currentResult.original));
       fullEnglish.classList.remove('hidden');
       $('#edit-full').classList.remove('hidden');
@@ -587,7 +587,7 @@
 
     currentResult.words.forEach((w, idx) => {
       const tr = document.createElement('tr');
-      const meaning = meaningLang === 'en' ? w.en : (w.es || '…');
+      const meaning = capFirst(meaningLang === 'en' ? w.en : (w.es || '…'));
       const saved = isInDict(w.char);
 
       tr.innerHTML = `
@@ -645,7 +645,7 @@
       currentResult.spanishFull = await translateText(currentResult.original, 'es');
       btnShowSpanish.disabled = false;
     }
-    fullSpanish.textContent = currentResult.spanishFull;
+    fullSpanish.textContent = capFirst(currentResult.spanishFull);
     fullSpanish.classList.remove('hidden');
     btnShowSpanish.textContent = 'Hide Spanish';
   }
@@ -824,7 +824,7 @@
     $('#quiz-example').textContent = cur ? cur.zh : 'No example yet. Add a sentence where you found this word.';
     $('#quiz-example').classList.toggle('empty', !cur);
     $('#quiz-example-pinyin').textContent = cur ? sentencePinyin(cur.zh) : '';
-    $('#quiz-example-en').textContent = cur ? cur.en : '';
+    $('#quiz-example-en').textContent = cur ? capFirst(cur.en) : '';
     $('#quiz-refresh').classList.toggle('hidden', list.length < 2);
     $('#quiz-ex-count').textContent = list.length > 1 ? `${exIdx + 1}/${list.length}` : '';
     $('#quiz-ex-delete').classList.toggle('hidden', !cur);
@@ -967,6 +967,12 @@
   });
 
   // ---------- Helpers ----------
+  // Translations are shown starting with a capital letter ("(Question particle)", "To want").
+  // Only the display changes; what is stored stays as it came.
+  function capFirst(text) {
+    return String(text || '').replace(/\p{L}/u, c => c.toUpperCase());
+  }
+
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -1070,8 +1076,8 @@
   function renderCardMeaning(item) {
     const list = splitMeanings(item.en);
     $('#quiz-meaning').innerHTML = list.length > 1
-      ? '<ol class="meaning-list">' + list.map(m => `<li>${escapeHtml(m)}</li>`).join('') + '</ol>'
-      : escapeHtml(list[0] || '');
+      ? '<ol class="meaning-list">' + list.map(m => `<li>${escapeHtml(capFirst(m))}</li>`).join('') + '</ol>'
+      : escapeHtml(capFirst(list[0] || ''));
   }
 
   function openCardMeaningEdit() {
