@@ -115,6 +115,76 @@
   --clear-text: #ffffff;
 }
 
+/* ---------- Reading themes: softer colors, no glow or scanlines ---------- */
+/* Night Reader: warm dark gray with cream text, for reading at night */
+[data-theme="night-reader"] {
+  --bg: #1d1b18;
+  --bg-secondary: #25221e;
+  --card: #26231f;
+  --card-border: rgba(216, 166, 87, 0.22);
+  --text: #e6dcc8;
+  --text-muted: #a39882;
+  --primary: #d8a657;
+  --primary-glow: transparent;
+  --accent: #a9b665;
+  --accent-glow: transparent;
+  --danger: #e07a6a;
+  --success: #a9b665;
+  --input-bg: #221f1b;
+  --header-bg: #1d1b18;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --radius: 8px;
+  --font: VT323, ui-monospace, monospace;
+  --clear-bg: #2b2823;
+  --clear-text: #efe6d2;
+}
+
+/* Paper: light sepia page with dark brown ink, for daytime */
+[data-theme="paper"] {
+  --bg: #f3ead8;
+  --bg-secondary: #ebe0c9;
+  --card: #f8f1e3;
+  --card-border: rgba(110, 80, 45, 0.25);
+  --text: #3d3226;
+  --text-muted: #7d6c58;
+  --primary: #8b5a2b;
+  --primary-glow: transparent;
+  --accent: #5f7a52;
+  --accent-glow: transparent;
+  --danger: #b4483c;
+  --success: #4f7a45;
+  --input-bg: #fbf6ec;
+  --header-bg: #f3ead8;
+  --shadow: 0 2px 10px rgba(80, 60, 30, 0.12);
+  --radius: 8px;
+  --font: VT323, ui-monospace, monospace;
+  --clear-bg: #fbf6ec;
+  --clear-text: #2e261d;
+}
+
+/* Soft Slate: calm blue-gray with soft light text and sage accents */
+[data-theme="soft-slate"] {
+  --bg: #232a33;
+  --bg-secondary: #2a323c;
+  --card: #2b333e;
+  --card-border: rgba(143, 188, 187, 0.22);
+  --text: #d8dee9;
+  --text-muted: #96a1b2;
+  --primary: #88c0b0;
+  --primary-glow: transparent;
+  --accent: #81a1c1;
+  --accent-glow: transparent;
+  --danger: #d68a8a;
+  --success: #a3be8c;
+  --input-bg: #262e38;
+  --header-bg: #232a33;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --radius: 8px;
+  --font: VT323, ui-monospace, monospace;
+  --clear-bg: #2f3844;
+  --clear-text: #e5e9f0;
+}
+
 /* ---------- Base ---------- */
 * {
   box-sizing: border-box;
@@ -729,6 +799,9 @@ html, body {
 .matrix-soft-preview { background: linear-gradient(135deg, #020605 40%, #00ff64 80%, #061a12 100%); }
 .synthwave-preview { background: linear-gradient(135deg, #1a0a2e 30%, #ff71ce 60%, #ff9f1c 100%); }
 .chrome-crimson-preview { background: linear-gradient(135deg, #0e1015 40%, #ff003c 75%, #c0c8d4 100%); }
+.night-reader-preview { background: linear-gradient(135deg, #1d1b18 40%, #d8a657 75%, #e6dcc8 100%); }
+.paper-preview { background: linear-gradient(135deg, #f3ead8 40%, #8b5a2b 75%, #3d3226 100%); }
+.soft-slate-preview { background: linear-gradient(135deg, #232a33 40%, #88c0b0 75%, #d8dee9 100%); }
 .holo-glass-preview { background: linear-gradient(135deg, #0f0c29 30%, #7b5cff 60%, #00e5ff 100%); }
 
 /* Toast */
@@ -1441,7 +1514,7 @@ body::after {
   cursor: pointer;
   white-space: nowrap;
 }
-.pos-chip.active { color: #000; background: var(--primary); border-color: var(--primary); }
+.pos-chip.active { color: var(--bg); background: var(--primary); border-color: var(--primary); }
 .quiz-pos-row { display: flex; justify-content: center; }
 .pos-select {
   font: inherit;
@@ -1456,7 +1529,7 @@ body::after {
   text-align: center;
   cursor: pointer;
 }
-.pos-select option { color: #000; text-transform: none; }
+.pos-select option { color: var(--text); background: var(--bg); text-transform: none; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
 .switch {
   appearance: none;
@@ -1482,5 +1555,13 @@ body::after {
   transition: transform .15s;
 }
 .switch:checked { background: var(--primary); }
-.switch:checked::after { transform: translateX(22px); background: #000; }
+.switch:checked::after { transform: translateX(22px); background: var(--bg); }
 #quiz-ex-en { font-family: var(--study-font); }
+
+/* Reading themes: no glow, no scanlines, steadier text */
+:root:is([data-theme="night-reader"], [data-theme="paper"], [data-theme="soft-slate"]) body::after { display: none; }
+:root:is([data-theme="night-reader"], [data-theme="paper"], [data-theme="soft-slate"]) * { text-shadow: none !important; }
+:root:is([data-theme="night-reader"], [data-theme="paper"], [data-theme="soft-slate"]) body { background: var(--bg); }
+[data-theme="night-reader"] { --hl-known: #a9c46c; --hl-learning: #ea8a7a; }
+[data-theme="paper"] { --hl-known: #3f7a3a; --hl-learning: #b23c34; }
+[data-theme="soft-slate"] { --hl-known: #a3be8c; --hl-learning: #e0918f; }
