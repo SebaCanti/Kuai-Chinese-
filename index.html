@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=25" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=25" />
+  <link rel="icon" href="icon.svg?v=27" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=27" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=25" />
+  <link rel="stylesheet" href="styles.css?v=27" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -36,6 +36,7 @@
         <button class="tab active" data-tab="translate">Translate</button>
         <button class="tab" data-tab="history">History</button>
         <button class="tab" data-tab="dictionary">Dictionary</button>
+        <button class="tab" data-tab="weekly"><span class="tab-long">Weekly Program</span><span class="tab-short">Weekly</span></button>
         <button class="tab tab-settings-top" data-tab="settings">Settings</button>
       </nav>
     </header>
@@ -180,6 +181,19 @@
       </div>
     </main>
 
+    <!-- Weekly Program: words saved per week and the pace -->
+    <main id="tab-weekly" class="tab-content">
+      <div class="section-header">
+        <h2>&gt; WEEKLY PROGRAM</h2>
+      </div>
+      <section class="result-block week-now" id="week-now"></section>
+      <section class="result-block">
+        <h3>&gt; ALL WEEKS</h3>
+        <div id="week-list" class="week-list"></div>
+      </section>
+      <p class="week-legend"><span class="pace calm">Calm pace</span> under 25 words · <span class="pace good">On track</span> 25–40 · <span class="pace intense">Intense pace</span> over 40</p>
+    </main>
+
     <!-- Deck: the words in one pile, to study them one by one -->
     <div id="deck" class="quiz hidden" role="dialog" aria-modal="true" aria-labelledby="deck-title">
       <div class="quiz-card">
@@ -270,7 +284,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; SETTINGS <span class="app-version">v25</span></h2>
+        <h2>&gt; SETTINGS <span class="app-version">v27</span></h2>
       </div>
 
       <section class="result-block">
@@ -337,12 +351,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v25</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v27</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=27"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
