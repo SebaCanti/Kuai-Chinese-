@@ -1543,3 +1543,29 @@ body::after {
   #quiz .btn { font-size: 24px; }
   #quiz .text-btn { font-size: 22px; }
 }
+
+/* ---- Menu and section titles in regular letters (not the pixel font) ---- */
+:root { --label-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+.tab,
+.settings-side-tab,
+.section-header h2,
+.dict-col h3 {
+  font-family: var(--label-font);
+  font-weight: 600;
+}
+.tab { font-size: 15px; letter-spacing: 1px; }
+.section-header h2 { font-size: 20px; letter-spacing: 1px; }
+.dict-col h3 { font-size: 13px; letter-spacing: 0.5px; line-height: 1.25; }
+.dict-col .count { font-family: var(--font); }
+@media (max-width: 700px) {
+  .tab { font-size: 14px; letter-spacing: 0.5px; }
+  .settings-side-tab { font-size: 14px; letter-spacing: 0.5px; }
+}
+@media (max-width: 420px) {
+  .dict-col h3 { font-size: 12px; letter-spacing: 0; }
+}
+@media (min-width: 900px) {
+  .tab { font-size: 16px; }
+  #tab-dictionary .section-header h2 { font-size: 24px; }
+  .dict-col h3 { font-size: 16px; }
+}
