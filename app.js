@@ -6,7 +6,7 @@
   let currentResult = null;
   let meaningLang = 'en'; // 'en' | 'es'
   let longPressTimer = null;
-  const LONG_PRESS_MS = 550;
+  const LONG_PRESS_MS = 400;
 
   // ---------- Themes ----------
   const THEME_KEY = 'kuai_theme';
@@ -308,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=17', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=18', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -1000,46 +1000,52 @@
   }
 
   // ---------- Clipboard long-press ----------
-  async function pasteFromClipboard() {
+  // quiet: used for the attempt while the finger is still down. If the browser
+  // refuses (iPhone does outside a release), we try again on release.
+  async function pasteFromClipboard(quiet = false) {
     try {
       if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('Clipboard API unavailable');
       const text = await navigator.clipboard.readText();
       if (text && text.trim()) {
         inputText.value = text.trim();
-        showToast('Text pasted ✓');
         processText(text.trim());
-      } else {
+      } else if (!quiet) {
         showToast('Clipboard is empty');
       }
+      return true;
     } catch (err) {
+      if (quiet) return false;
       console.warn('Clipboard error:', err);
       showToast('Tap the box, hold, then choose Paste');
       inputText.focus();
+      return false;
     }
   }
 
-  // Browsers (iPhone Safari above all) only allow reading the clipboard inside
-  // a user gesture such as releasing the finger, not from a timer. So holding
-  // arms the paste, and releasing after the hold does it.
+
+  // As soon as the hold is long enough we paste and translate. Most browsers
+  // allow that right away; iPhone Safari only allows reading the clipboard when
+  // the finger is lifted, so there the paste happens on release.
   let pressArmed = false;
+  let pastedDuringHold = false;
   function startLongPress(e) {
     if (e.target.closest('textarea') || e.target.closest('button')) return;
     pressArmed = false;
+    pastedDuringHold = false;
     pasteZone.classList.add('holding');
-    longPressTimer = setTimeout(() => {
+    longPressTimer = setTimeout(async () => {
       pressArmed = true;
       pasteZone.classList.add('armed');
       if (navigator.vibrate) navigator.vibrate(20);
+      pastedDuringHold = await pasteFromClipboard(true);
     }, LONG_PRESS_MS);
   }
 
   function endLongPress() {
     clearTimeout(longPressTimer);
     pasteZone.classList.remove('holding', 'armed');
-    if (pressArmed) {
-      pressArmed = false;
-      pasteFromClipboard();
-    }
+    if (pressArmed && !pastedDuringHold) pasteFromClipboard();
+    pressArmed = false;
   }
 
   function cancelLongPress() {
@@ -1129,7 +1135,6 @@
   pasteZone.addEventListener('mousedown', (e) => { if (e.button === 0) startLongPress(e); });
   pasteZone.addEventListener('mouseup', endLongPress);
   pasteZone.addEventListener('mouseleave', cancelLongPress);
-  $('#btn-paste').addEventListener('click', pasteFromClipboard);
   pasteZone.addEventListener('contextmenu', (e) => e.preventDefault());
 
   btnTranslate.addEventListener('click', () => processText(inputText.value));

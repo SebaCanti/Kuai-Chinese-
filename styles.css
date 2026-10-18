@@ -298,7 +298,12 @@ html, body {
   transition: border-color 0.2s, box-shadow 0.2s;
   user-select: none;
   -webkit-user-select: none;
+  /* iPhone: no "Save image / Copy" menu on a long press, which would cancel the hold */
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
+.paste-zone textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+.paste-zone svg, .paste-zone img { pointer-events: none; }
 
 .paste-zone.holding {
   border-color: var(--primary);
@@ -1365,7 +1370,6 @@ body::after {
 
 /* ---- Paste and your own corrections ---- */
 .paste-zone.armed { border-color: var(--primary); box-shadow: 0 0 18px var(--primary-glow); }
-.paste-btn { display: block; margin: 8px 0 0 auto; }
 .word-meaning { position: relative; }
 .word-meaning .edit-btn,
 .edit-btn {

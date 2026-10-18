@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=17" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=17" />
+  <link rel="icon" href="icon.svg?v=18" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=18" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=17" />
+  <link rel="stylesheet" href="styles.css?v=18" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -88,7 +88,6 @@
         <p class="paste-hint">&gt; PRESS AND HOLD TO PASTE</p>
         <p class="paste-sub">or tap the box to type / paste manually</p>
         <textarea id="input-text" placeholder="Paste or type Chinese, English or Spanish text here..." rows="3"></textarea>
-        <button id="btn-paste" class="text-btn paste-btn" type="button">📋 Paste</button>
         <button id="btn-translate" class="btn primary">TRANSLATE NOW</button>
       </div>
 
@@ -240,7 +239,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; SETTINGS <span class="app-version">v17</span></h2>
+        <h2>&gt; SETTINGS <span class="app-version">v18</span></h2>
       </div>
 
       <section class="result-block">
@@ -294,12 +293,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v17</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v18</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);
