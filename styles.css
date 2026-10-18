@@ -1362,3 +1362,35 @@ body::after {
 .sync-input:focus { outline: none; border-color: var(--primary); }
 .sync-link { color: var(--primary); }
 #sync-connected { margin-top: 10px; }
+
+/* ---- Paste and your own corrections ---- */
+.paste-zone.armed { border-color: var(--primary); box-shadow: 0 0 18px var(--primary-glow); }
+.paste-btn { display: block; margin: 8px 0 0 auto; }
+.word-meaning { position: relative; }
+.word-meaning .edit-btn,
+.edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  padding: 2px 4px;
+  margin-left: 4px;
+  cursor: pointer;
+  font-family: var(--study-font);
+  text-shadow: none;
+}
+.edit-btn:hover { color: var(--primary); }
+.word-meaning.mine .meaning-text,
+#full-english.mine { color: var(--primary); }
+#full-english.mine::after { content: " (yours)"; font-size: 0.75em; opacity: .6; }
+.meaning-input {
+  width: calc(100% - 32px);
+  padding: 6px 8px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--primary);
+  font-family: var(--study-font);
+  font-size: 16px;
+}
+.edit-full-btn { display: block; margin: 6px 0 4px auto; }
+#edit-full-form { margin: 8px 0; }
