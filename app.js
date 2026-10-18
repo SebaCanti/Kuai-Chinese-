@@ -206,11 +206,13 @@
       en: word.en,
       es: word.es || '',
       status: 'new',
+      pos: (cedict && posEn) ? guessPos(word.char, word.en) : '',
       sentences: word.example ? [{ zh: word.example, en: word.exampleEn || '' }] : [],
       date: new Date().toISOString()
     });
     saveDict(dict);
     renderDictionary();
+    fillMissingPos();
     showToast('Saved to dictionary ✓');
     return true;
   }
@@ -308,7 +310,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=21', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=22', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -322,6 +324,107 @@
         .catch(err => { console.warn('Word list unavailable', err); cedictLoading = null; return null; });
     }
     return cedictLoading;
+  }
+
+  // ---------- Word types (noun, verb, adjective…) ----------
+  // Worked out offline from the word's English meaning: CEDICT writes verbs as "to …",
+  // and pos-en.txt (from WordNet) says which English words are adjectives, adverbs or verbs.
+  // Any English word not listed there is a noun. You can change the type on the card.
+  const POS_LABELS = {
+    noun: 'Noun', verb: 'Verb', adj: 'Adjective', adv: 'Adverb', pron: 'Pronoun',
+    mw: 'Measure word', part: 'Particle', conj: 'Conjunction', prep: 'Preposition',
+    num: 'Number', expr: 'Expression'
+  };
+  const POS_PLURAL = {
+    noun: 'Nouns', verb: 'Verbs', adj: 'Adjectives', adv: 'Adverbs', pron: 'Pronouns',
+    mw: 'Measure words', part: 'Particles', conj: 'Conjunctions', prep: 'Prepositions',
+    num: 'Numbers', expr: 'Expressions'
+  };
+  const POS_WORDS = {
+    pron: 'i me my mine you your yours he him his she her hers it its we us our they them their this that these those who whom whose what which myself yourself himself herself itself ourselves themselves everyone everybody someone somebody nobody anyone anything something nothing everything each',
+    conj: 'and but or because although though if unless so therefore however whereas while yet nor otherwise moreover furthermore',
+    prep: 'at in on by from to for with without toward towards into onto about above below under over between among through across along around behind beside near since until till via per than against according',
+    num: 'zero one two three four five six seven eight nine ten eleven twelve twenty thirty forty fifty sixty seventy eighty ninety hundred thousand million billion half first second third',
+    adv: 'very quite too also still already just only not never always often sometimes then again even almost soon really so more most now here there together certainly perhaps maybe probably extremely rather fairly',
+    part: 'particle marker interjection'
+  };
+  const POS_SET = {};
+  Object.keys(POS_WORDS).forEach(k => POS_WORDS[k].split(' ').forEach(w => { if (!POS_SET[w]) POS_SET[w] = k; }));
+
+  let posEn = null;
+  let posLoading = null;
+  function loadPosLexicon() {
+    if (posEn) return Promise.resolve(posEn);
+    if (!posLoading) {
+      posLoading = fetchWithTimeout('pos-en.txt?v=22', 20000)
+        .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
+        .then(txt => {
+          const code = { a: 'adj', r: 'adv', v: 'verb' };
+          const map = new Map();
+          txt.split('\n').forEach(line => {
+            const [w, c] = line.split('\t');
+            if (w && code[c]) map.set(w, code[c]);
+          });
+          posEn = map;
+          return map;
+        })
+        .catch(err => { console.warn('Word types unavailable', err); posLoading = null; return null; });
+    }
+    return posLoading;
+  }
+
+  // The type one English meaning points to, or '' when it says nothing
+  function posOfSense(sense) {
+    const raw = String(sense || '').toLowerCase().trim();
+    if (!raw) return '';
+    if (/measure word|classifier/.test(raw)) return 'mw';
+    if (/\(.*(particle|marker|possessive|completed action|aspect|interjection).*\)?/.test(raw)) return 'part';
+    if (/\bidiom\b|\bproverb\b/.test(raw)) return 'expr';
+    const text = raw.replace(/\([^)]*\)?/g, ' ').replace(/\s+/g, ' ').trim();
+    const toks = text.match(/[a-z]+|\d+/g) || [];
+    if (!toks.length) return '';
+    if (toks[0] === 'to' && toks.length > 1) return 'verb';
+    if (/^(don|doesn|didn|not|can|cannot|won|must|should|will|would|could)$/.test(toks[0]) && toks.length > 1) return 'verb';
+    if (/^\d+$/.test(toks[0]) && toks.length === 1) return 'num';
+    if (/^(a little|a bit|a little bit|a lot)$/.test(text)) return 'adv';
+    if (/^(a|an|the)$/.test(toks[0])) return 'noun';
+    const first = toks[0];
+    const last = toks[toks.length - 1];
+    if (toks.length === 1) {
+      if (POS_SET[first] && POS_SET[first] !== 'part') return POS_SET[first];
+      if (posEn && posEn.has(first)) return posEn.get(first);
+      if (/ly$/.test(first) && first.length > 4) return 'adv';
+      return 'noun';
+    }
+    if (POS_SET[last] === 'prep' || POS_SET[first] === 'conj') return POS_SET[first] === 'conj' ? 'conj' : 'prep';
+    if (POS_SET[first] === 'adv' && posEn && posEn.get(last) === 'adj') return 'adj';
+    if (POS_SET[first] === 'pron') return 'expr';
+    const lastPos = posEn && posEn.get(last);
+    if (lastPos === 'adj' || lastPos === 'adv') return lastPos;
+    return 'noun';
+  }
+
+  // Your meaning for the word decides first, then the dictionary's meanings
+  function guessPos(char, en) {
+    if (/^[零一二三四五六七八九十百千万亿两]+$/.test(char)) return 'num';
+    const senses = String(en || '').split(/\s*[;\n]\s*/);
+    const listed = cedict && cedict.get(char);
+    if (listed) senses.push(...listed.split('|').slice(0, 3));
+    for (const s of senses) {
+      const p = posOfSense(s);
+      if (p) return p;
+    }
+    return char.length >= 4 ? 'expr' : 'noun';
+  }
+
+  // Gives every saved word a type once the word lists are loaded
+  async function fillMissingPos() {
+    if (!getDict().some(d => !d.pos)) return;
+    await Promise.all([loadCedict(), loadPosLexicon()]);
+    const dict = getDict();
+    let changed = false;
+    dict.forEach(d => { if (!d.pos) { d.pos = guessPos(d.char, d.en); changed = true; } });
+    if (changed) { saveDict(dict); renderDictionary(); }
   }
 
   function wordPinyin(word) {
@@ -719,10 +822,40 @@
     showToast('Deleted');
   }
 
-  function renderDictionary() {
+  // ---------- Word type filter (bottom of Dictionary) ----------
+  let posFilter = 'all';
+
+  // The saved words the filter lets through
+  function shownDict() {
     const dict = getDict();
-    dictEmpty.classList.toggle('hidden', dict.length > 0);
-    dictBoard.classList.toggle('hidden', dict.length === 0);
+    return posFilter === 'all' ? dict : dict.filter(d => d.pos === posFilter);
+  }
+
+  function renderPosFilter(all) {
+    const counts = {};
+    all.forEach(d => { if (d.pos) counts[d.pos] = (counts[d.pos] || 0) + 1; });
+    if (posFilter !== 'all' && !counts[posFilter]) posFilter = 'all';
+    const types = Object.keys(POS_LABELS).filter(k => counts[k]);
+    const bar = $('#pos-filter');
+    bar.classList.toggle('hidden', types.length === 0);
+    bar.innerHTML = [`<button class="pos-chip${posFilter === 'all' ? ' active' : ''}" data-pos="all">All ${all.length}</button>`]
+      .concat(types.map(k => `<button class="pos-chip${posFilter === k ? ' active' : ''}" data-pos="${k}">${POS_PLURAL[k]} ${counts[k]}</button>`))
+      .join('');
+  }
+
+  $('#pos-filter').addEventListener('click', (e) => {
+    const btn = e.target.closest('.pos-chip');
+    if (!btn) return;
+    posFilter = btn.dataset.pos;
+    renderDictionary();
+  });
+
+  function renderDictionary() {
+    const all = getDict();
+    renderPosFilter(all);
+    const dict = shownDict();
+    dictEmpty.classList.toggle('hidden', all.length > 0);
+    dictBoard.classList.toggle('hidden', all.length === 0);
     $('#btn-random').disabled = dict.length === 0;
 
     // New words: compact chips in the middle column
@@ -753,8 +886,9 @@
   let deckStatus = 'known';
 
   function renderDeck() {
-    const items = getDict().filter(d => d.status === deckStatus);
-    $('#deck-title').textContent = `> ${deckStatus === 'known' ? 'MEMORIZED' : 'NOT MEMORIZED'} (${items.length})`;
+    const items = shownDict().filter(d => d.status === deckStatus);
+    const kind = posFilter === 'all' ? '' : ` · ${POS_PLURAL[posFilter].toUpperCase()}`;
+    $('#deck-title').textContent = `> ${deckStatus === 'known' ? 'MEMORIZED' : 'NOT MEMORIZED'}${kind} (${items.length})`;
     $('#deck-list').innerHTML = items.length
       ? items.map(chipHtml).join('')
       : '<p class="empty-state">No cards in this pile.</p>';
@@ -804,9 +938,11 @@
     quizItem = item;
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
+    renderCardPos(item);
     renderCardMeaning(item);
     $('#quiz-meaning-form').classList.add('hidden');
     $('#quiz-char-form').classList.add('hidden');
+    $('#quiz-delete').classList.toggle('hidden', quizMode !== 'word' || !showDeleteCards());
     exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
@@ -829,7 +965,9 @@
     $('#quiz-refresh').classList.toggle('hidden', list.length < 2);
     $('#quiz-ex-count').textContent = list.length > 1 ? `${exIdx + 1}/${list.length}` : '';
     $('#quiz-ex-delete').classList.toggle('hidden', !cur);
+    $('#quiz-ex-edit').classList.toggle('hidden', !cur);
     $('#quiz-add-form').classList.add('hidden');
+    $('#quiz-ex-form').classList.add('hidden');
     $('#quiz-add').classList.remove('hidden');
   }
 
@@ -886,6 +1024,38 @@
     showToast('Sentence added ✓');
   }
 
+  // ---------- Edit a saved example ----------
+  function openEditSentence() {
+    const cur = quizItem && quizItem.sentences[exIdx];
+    if (!cur) return;
+    $('#quiz-ex-zh').value = cur.zh;
+    $('#quiz-ex-en').value = capFirst(cur.en);
+    $('#quiz-add-form').classList.add('hidden');
+    $('#quiz-ex-form').classList.remove('hidden');
+    $('#quiz-ex-zh').focus();
+  }
+
+  async function saveEditSentence() {
+    const cur = quizItem && quizItem.sentences[exIdx];
+    if (!cur) return;
+    const zh = $('#quiz-ex-zh').value.trim();
+    let en = $('#quiz-ex-en').value.trim();
+    if (!zh) { showToast('Write the Chinese sentence'); return; }
+    if (!zh.includes(quizItem.char)) { showToast(`The sentence must contain ${quizItem.char}`); return; }
+    if (quizItem.sentences.some((x, i) => i !== exIdx && x.zh === zh)) { showToast('You already added this sentence'); return; }
+    // New Chinese with the old English left as it was: translate the new sentence
+    if (zh !== cur.zh && (!en || en === capFirst(cur.en))) {
+      const btn = $('#quiz-ex-save');
+      btn.disabled = true;
+      en = await translateText(zh, 'en') || en;
+      btn.disabled = false;
+    }
+    const sentences = quizItem.sentences.map((x, i) => i === exIdx ? { ...x, zh, en } : x);
+    updateSentences(quizItem, sentences);
+    fillExample(quizItem);
+    showToast('Sentence saved ✓');
+  }
+
   function deleteSentence() {
     if (!quizItem || !quizItem.sentences[exIdx]) return;
     updateSentences(quizItem, quizItem.sentences.filter((_, i) => i !== exIdx));
@@ -894,11 +1064,21 @@
     showToast('Sentence deleted');
   }
 
+  // Settings switch: show or hide the Delete button on word cards (this device only)
+  const STORAGE_SHOW_DELETE = 'kuai_show_delete';
+  function showDeleteCards() {
+    return localStorage.getItem(STORAGE_SHOW_DELETE) !== 'off';
+  }
+  $('#setting-show-delete').checked = showDeleteCards();
+  $('#setting-show-delete').addEventListener('change', (e) => {
+    localStorage.setItem(STORAGE_SHOW_DELETE, e.target.checked ? 'on' : 'off');
+    showToast(e.target.checked ? 'Delete button shown on cards' : 'Delete button hidden on cards');
+  });
+
   function openWordCard(item) {
     quizMode = 'word';
     $('#quiz-title').textContent = '> WORD CARD';
     $('#quiz-next').classList.add('hidden');
-    $('#quiz-delete').classList.remove('hidden');
     quiz.classList.remove('hidden');
     showCard(item);
   }
@@ -910,7 +1090,7 @@
   }
 
   function nextQuizCard() {
-    const dict = getDict();
+    const dict = shownDict();
     if (!dict.length) { closeQuiz(); return; }
     let pick = dict[Math.floor(Math.random() * dict.length)];
     if (dict.length > 1 && quizItem && pick.id === quizItem.id) {
@@ -924,7 +1104,6 @@
     quizMode = 'random';
     $('#quiz-title').textContent = '> RANDOM CARD';
     $('#quiz-next').classList.remove('hidden');
-    $('#quiz-delete').classList.add('hidden');
     quiz.classList.remove('hidden');
     nextQuizCard();
   }
@@ -949,6 +1128,9 @@
   $('#quiz-add-cancel').addEventListener('click', () => fillExample(quizItem));
   $('#quiz-add-save').addEventListener('click', saveSentence);
   $('#quiz-ex-delete').addEventListener('click', deleteSentence);
+  $('#quiz-ex-edit').addEventListener('click', openEditSentence);
+  $('#quiz-ex-cancel').addEventListener('click', () => $('#quiz-ex-form').classList.add('hidden'));
+  $('#quiz-ex-save').addEventListener('click', saveEditSentence);
   $('#quiz-known').addEventListener('click', () => {
     if (!quizItem) return;
     setStatus(quizItem.id, 'known');
@@ -962,7 +1144,7 @@
     afterMark();
   });
   $('#quiz-delete').addEventListener('click', () => {
-    if (!quizItem) return;
+    if (!quizItem || !showDeleteCards()) return;
     removeFromDict(quizItem.id);
     closeQuiz();
   });
@@ -1102,6 +1284,25 @@
     renderDictionary();
     showToast(list.length > 1 ? `${list.length} meanings saved ✓` : 'Meaning saved ✓');
   }
+
+  // ---------- Word type on the card (tap to change it) ----------
+  function renderCardPos(item) {
+    const sel = $('#quiz-pos');
+    sel.innerHTML = (item.pos ? '' : '<option value="">Word type…</option>') +
+      Object.keys(POS_LABELS).map(k => `<option value="${k}"${item.pos === k ? ' selected' : ''}>${POS_LABELS[k]}</option>`).join('');
+  }
+
+  $('#quiz-pos').addEventListener('change', (e) => {
+    if (!quizItem || !e.target.value) return;
+    const dict = getDict();
+    const item = dict.find(d => d.id === quizItem.id);
+    if (!item) return;
+    item.pos = quizItem.pos = e.target.value;
+    saveDict(dict);
+    renderCardPos(quizItem);
+    renderDictionary();
+    showToast(`Saved as ${POS_LABELS[item.pos].toLowerCase()} ✓`);
+  });
 
   // ---------- Fix the Chinese word itself on the card ----------
   function openCardCharEdit() {
@@ -1406,6 +1607,7 @@
         localStorage.setItem(SYNC_LAST, new Date().toISOString());
         renderHistory();
         renderDictionary();
+        fillMissingPos();
         if (currentResult) renderResults();
         setSyncStatus();
         if (showResult) showToast('Synced ✓');
@@ -1468,7 +1670,7 @@
   renderDictionary();
   applyTheme(getSavedTheme());
   // Warm up the offline word list so the first translation is fast
-  setTimeout(loadCedict, 1500);
+  setTimeout(() => { loadCedict(); loadPosLexicon(); fillMissingPos(); }, 1500);
   setSyncStatus();
   syncNow();
 })();

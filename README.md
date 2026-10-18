@@ -79,6 +79,8 @@ Then open `http://localhost:8080` in your phone's browser (same Wi-Fi network).
 
 `cedict.txt` is a compact word list built from [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cc-cedict) (CC BY-SA 4.0): one `word<TAB>sense1|sense2|...` per line, words up to 4 characters. The word table picks the sense that matches the full English translation (想 → "to miss" in 我想你了, "to want" in 不想让你花钱买). Compound words always stay together; when none of their senses fit the sentence, Google is asked for that word alone. Entries that CC-CEDICT only lists as an abbreviation or variant (体检) take the senses of the word they point to. The app splits Chinese text by longest match against it, so compound words like 咳嗽 or 一点点 stay together, and takes the word-by-word meanings from it without needing the network. Google Translate is only used for the full sentence and for words missing from the list.
 
+`pos-en.txt` gives each saved word its type (noun, verb, adjective…) offline. It lists the English words that [WordNet](https://wordnet.princeton.edu/) (WordNet 3.1 license) uses mostly as adjectives, adverbs or verbs; any other English word counts as a noun. CEDICT meanings that start with "to" are verbs, and "(measure word)" or "(particle)" give those types. You can change the type on the card, and the Dictionary filter at the bottom shows one type at a time.
+
 ## Sync between devices
 
 Settings › Sync devices stores history and dictionary in a private gist (`kuai-chinese-sync.json`) in your GitHub account. Create a token with only the `gist` scope and paste it on each device. Changes sync a few seconds after you make them and when the app comes back to the foreground; deletions sync too.
