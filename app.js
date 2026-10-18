@@ -10,7 +10,7 @@
 
   // ---------- Themes ----------
   const THEME_KEY = 'kuai_theme';
-  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass', 'night-reader', 'paper', 'soft-slate'];
+  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass', 'paper'];
 
   function getSavedTheme() {
     const t = localStorage.getItem(THEME_KEY);
@@ -29,9 +29,7 @@
       'synthwave': '#1a0a2e',
       'chrome-crimson': '#0e1015',
       'holo-glass': '#0f0c29',
-      'night-reader': '#1d1b18',
-      'paper': '#f3ead8',
-      'soft-slate': '#232a33'
+      'paper': '#ffffff'
     };
     if (meta) meta.content = colors[theme] || '#0a0a12';
     // Highlight active card
