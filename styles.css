@@ -1394,3 +1394,7 @@ body::after {
 }
 .edit-full-btn { display: block; margin: 6px 0 4px auto; }
 #edit-full-form { margin: 8px 0; }
+
+/* ---- App version in Settings ---- */
+.section-header h2:has(.app-version) { display: flex; align-items: baseline; justify-content: space-between; flex: 1; width: 100%; }
+.app-version { font-size: 0.85em; color: var(--text-muted); letter-spacing: 1px; text-shadow: none; text-transform: none; }
