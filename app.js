@@ -10,7 +10,7 @@
 
   // ---------- Themes ----------
   const THEME_KEY = 'kuai_theme';
-  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass'];
+  const THEMES = ['neon-tokyo', 'matrix-soft', 'synthwave', 'chrome-crimson', 'holo-glass', 'paper'];
 
   function getSavedTheme() {
     const t = localStorage.getItem(THEME_KEY);
@@ -28,7 +28,8 @@
       'matrix-soft': '#05080a',
       'synthwave': '#1a0a2e',
       'chrome-crimson': '#0e1015',
-      'holo-glass': '#0f0c29'
+      'holo-glass': '#0f0c29',
+      'paper': '#ffffff'
     };
     if (meta) meta.content = colors[theme] || '#0a0a12';
     // Highlight active card
@@ -310,7 +311,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=22', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=23', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -356,7 +357,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=22', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=23', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
