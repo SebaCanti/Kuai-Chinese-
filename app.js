@@ -308,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=18', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=19', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -391,7 +391,12 @@
     const google = ask.length ? await translateWords(ask, 'en') : {};
     return segs.map(s => {
       const row = { char: s.origin, pinyin: s.result, es: '' };
-      if (mine[s.origin] && mine[s.origin].en) return { ...row, en: mine[s.origin].en, mine: true };
+      if (mine[s.origin] && mine[s.origin].en) {
+        // Several meanings of yours ("to want; to miss"): show the one that fits, or all of them
+        const own = splitMeanings(mine[s.origin].en);
+        const fit = pickSense(own, context);
+        return { ...row, en: fit.score > 0 ? fit.text : own.join('; '), mine: true };
+      }
       let g = (google[s.origin] || '').trim();
       if (g === s.origin || g === '[Translation error]') g = '';
       if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
@@ -799,7 +804,8 @@
     quizItem = item;
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
-    $('#quiz-meaning').textContent = item.en;
+    renderCardMeaning(item);
+    $('#quiz-meaning-form').classList.add('hidden');
     exIdx = 0;
     fillExample(item);
     $('#quiz-back').classList.add('hidden');
@@ -1053,6 +1059,46 @@
     pressArmed = false;
     pasteZone.classList.remove('holding', 'armed');
   }
+
+
+  // ---------- Meanings on the flash card ----------
+  // A word can have several meanings, stored as "to want; to miss".
+  function splitMeanings(en) {
+    return String(en || '').split(/\s*[;\n]\s*/).map(m => m.trim()).filter(Boolean);
+  }
+
+  function renderCardMeaning(item) {
+    const list = splitMeanings(item.en);
+    $('#quiz-meaning').innerHTML = list.length > 1
+      ? '<ol class="meaning-list">' + list.map(m => `<li>${escapeHtml(m)}</li>`).join('') + '</ol>'
+      : escapeHtml(list[0] || '');
+  }
+
+  function openCardMeaningEdit() {
+    $('#quiz-meaning-input').value = splitMeanings(quizItem.en).join('\n');
+    $('#quiz-meaning-form').classList.remove('hidden');
+    $('#quiz-meaning-input').focus();
+  }
+
+  function saveCardMeaning() {
+    const list = splitMeanings($('#quiz-meaning-input').value);
+    if (!list.length) { showToast('Write at least one meaning'); return; }
+    const en = list.join('; ');
+    const dict = getDict();
+    const item = dict.find(d => d.char === quizItem.char);
+    if (item) { item.en = en; saveDict(dict); }
+    quizItem.en = en;
+    // Translations use your meanings for this word from now on
+    setMine(STORAGE_MY_MEANINGS, quizItem.char, en);
+    renderCardMeaning(quizItem);
+    $('#quiz-meaning-form').classList.add('hidden');
+    renderDictionary();
+    showToast(list.length > 1 ? `${list.length} meanings saved ✓` : 'Meaning saved ✓');
+  }
+
+  $('#quiz-meaning-edit').addEventListener('click', openCardMeaningEdit);
+  $('#quiz-meaning-cancel').addEventListener('click', () => $('#quiz-meaning-form').classList.add('hidden'));
+  $('#quiz-meaning-save').addEventListener('click', saveCardMeaning);
 
   // ---------- Your own corrections ----------
   function editMeaning(idx, td) {

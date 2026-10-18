@@ -1402,3 +1402,12 @@ body::after {
 /* ---- App version in Settings ---- */
 .section-header h2:has(.app-version) { display: flex; align-items: baseline; justify-content: space-between; flex: 1; width: 100%; }
 .app-version { font-size: 0.85em; color: var(--text-muted); letter-spacing: 1px; text-shadow: none; text-transform: none; }
+
+/* ---- Editable meanings on the flash card ---- */
+.quiz-meaning-row { display: flex; align-items: flex-start; justify-content: center; gap: 4px; }
+.meaning-list { margin: 0; padding-left: 1.4em; text-align: left; }
+.meaning-list li { margin: 2px 0; }
+#quiz-meaning-form { margin: 8px 0 12px; }
+#quiz-meaning-form textarea {
+  font-family: var(--study-font);
+}
