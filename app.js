@@ -67,6 +67,24 @@
   // ---------- Storage helpers ----------
   const STORAGE_HISTORY = 'kuai_history';
   const STORAGE_DICT = 'kuai_dictionary';
+  // Your own corrections: word meanings and full-sentence translations.
+  // Stored as { key: { en, t } } and used before anything automatic.
+  const STORAGE_MY_MEANINGS = 'kuai_my_meanings';
+  const STORAGE_MY_SENTENCES = 'kuai_my_sentences';
+  function getMine(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; }
+  }
+  function setMine(key, item, en) {
+    const all = getMine(key);
+    // An empty value goes back to the automatic translation (kept as a dated blank so sync spreads it)
+    all[item] = { en: (en || '').trim(), t: Date.now() };
+    localStorage.setItem(key, JSON.stringify(all));
+    scheduleSync();
+  }
+  function myText(key, item) {
+    const v = getMine(key)[item];
+    return v && v.en ? v.en : '';
+  }
 
   function getHistory() {
     try { return JSON.parse(localStorage.getItem(STORAGE_HISTORY) || '[]'); }
@@ -290,7 +308,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=15', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=16', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -341,7 +359,8 @@
   // We pick the sense whose words appear in the sentence's English translation,
   // so 想 in "Don't want you to spend money" reads "to want", not "to think".
   const STOP = new Set(['a', 'an', 'the', 'to', 'of', 'sb', 'sth', 'be', 'is', 'are', 'it', 'on', 'in', 'at',
-    'for', 'and', 'or', 'with', 'as', 'by', 'do', 'one', 'that', 'this', 'etc', 'used', 'something', 'someone']);
+    'for', 'and', 'or', 'with', 'as', 'by', 'do', 'one', 'that', 'this', 'etc', 'used', 'something', 'someone',
+    'have', 'has', 'had', 'there', 'get', 'got']);
   function stem(w) {
     if (w.length > 4) return w.replace(/(ing|ed|es|s)$/, '');
     return w;
@@ -361,34 +380,29 @@
   }
 
   // Turns segments into table rows with a meaning each. Compound words always
-  // stay together. When none of a compound's senses fit the sentence
-  // (不想 "unexpectedly"), we ask Google for that word on its own ("don't want").
+  // stay together. Candidates for each word are the word list's senses plus
+  // Google's translation of the word alone; the one that also appears in the
+  // sentence's translation wins. Your own corrections always come first.
   async function wordsInContext(segs, englishText) {
     const dict = await loadCedict();
     const context = new Set(contentWords(englishText));
-    const rows = [];
-    const ask = [];
-    segs.forEach(s => {
+    const mine = getMine(STORAGE_MY_MEANINGS);
+    const ask = segs.map(s => s.origin).filter(w => !(mine[w] && mine[w].en));
+    const google = ask.length ? await translateWords(ask, 'en') : {};
+    return segs.map(s => {
+      const row = { char: s.origin, pinyin: s.result, es: '' };
+      if (mine[s.origin] && mine[s.origin].en) return { ...row, en: mine[s.origin].en, mine: true };
+      let g = (google[s.origin] || '').trim();
+      if (g === s.origin || g === '[Translation error]') g = '';
+      if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
       const senses = dict && dict.has(s.origin) ? dict.get(s.origin).split('|').filter(Boolean) : [];
-      const pick = senses.length ? pickSense(senses, context) : null;
-      const row = { char: s.origin, pinyin: s.result, en: pick ? pick.text : '' };
-      if (!pick || (pick.score === 0 && Array.from(s.origin).length > 1)) {
-        row.fallback = row.en;
-        row.en = null;
-        ask.push(s.origin);
-      }
-      rows.push(row);
+      const pick = pickSense(g ? [...senses, g] : senses, context);
+      if (pick.score > 0) return { ...row, en: pick.text };
+      // Nothing matches the sentence: the word list's main sense for single
+      // characters (Google is odd on lone characters), Google for compounds.
+      const compound = Array.from(s.origin).length > 1;
+      return { ...row, en: (compound ? g || senses[0] : senses[0] || g) || '' };
     });
-    if (ask.length) {
-      const fromGoogle = await translateWords(ask, 'en');
-      rows.forEach(r => {
-        if (r.en !== null) return;
-        let g = (fromGoogle[r.char] || '').trim();
-        if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
-        r.en = g && g !== r.char ? g : r.fallback;
-      });
-    }
-    return rows.map(({ fallback, ...r }) => ({ ...r, es: '' }));
   }
 
 
@@ -461,7 +475,7 @@
         await loadCedict();
         const segs = segmentAndPinyin(text);
         result.pinyinFull = segs.map(s => s.result).join(' ');
-        result.englishFull = await translateText(text, 'en');
+        result.englishFull = myText(STORAGE_MY_SENTENCES, text) || await translateText(text, 'en');
         result.words = await wordsInContext(segs, result.englishFull);
       } else {
         // English / Spanish → Chinese + Pinyin
@@ -530,7 +544,9 @@
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
       fullEnglish.textContent = currentResult.englishFull;
+      fullEnglish.classList.toggle('mine', !!myText(STORAGE_MY_SENTENCES, currentResult.original));
       fullEnglish.classList.remove('hidden');
+      $('#edit-full').classList.remove('hidden');
       fullSpanish.classList.add('hidden');
       fullSpanish.textContent = '';
       btnShowSpanish.classList.remove('hidden');
@@ -543,6 +559,8 @@
       fullPinyin.textContent = currentResult.pinyinFull;
       fullPinyin.classList.remove('hidden');
       fullEnglish.innerHTML = highlightHtml(currentResult.chineseFull, statusMap);
+      fullEnglish.classList.remove('mine');
+      $('#edit-full').classList.add('hidden');
       fullEnglish.classList.remove('hidden');
       fullSpanish.classList.add('hidden');
       btnShowSpanish.classList.add('hidden');
@@ -551,6 +569,7 @@
       speakFull.classList.remove('hidden');
     }
 
+    $('#edit-full-form').classList.add('hidden');
     renderWordTable();
     resultsEl.classList.remove('hidden');
   }
@@ -572,7 +591,10 @@
           <button class="speak-btn" data-speak="${escapeHtml(w.char)}" title="Play audio" aria-label="Play audio">🔊</button>
         </td>
         <td class="word-pinyin">${escapeHtml(w.pinyin)}</td>
-        <td class="word-meaning">${escapeHtml(meaning)}</td>
+        <td class="word-meaning${w.mine && meaningLang === 'en' ? ' mine' : ''}">
+          <span class="meaning-text">${escapeHtml(meaning)}</span>
+          ${meaningLang === 'en' ? `<button class="edit-btn" data-edit="${idx}" title="Edit meaning" aria-label="Edit meaning">✎</button>` : ''}
+        </td>
         <td>
           <button class="btn icon-btn ${saved ? 'saved' : ''}" data-idx="${idx}" title="Save">
             ${saved ? '✓' : '＋'}
@@ -580,6 +602,10 @@
         </td>
       `;
       wordTbody.appendChild(tr);
+    });
+
+    wordTbody.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => editMeaning(parseInt(btn.dataset.edit, 10), btn.closest('td')));
     });
 
     wordTbody.querySelectorAll('.icon-btn').forEach(btn => {
@@ -976,6 +1002,7 @@
   // ---------- Clipboard long-press ----------
   async function pasteFromClipboard() {
     try {
+      if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('Clipboard API unavailable');
       const text = await navigator.clipboard.readText();
       if (text && text.trim()) {
         inputText.value = text.trim();
@@ -986,24 +1013,109 @@
       }
     } catch (err) {
       console.warn('Clipboard error:', err);
-      showToast('Couldn’t read the clipboard. Paste manually');
+      showToast('Tap the box, hold, then choose Paste');
       inputText.focus();
     }
   }
 
+  // Browsers (iPhone Safari above all) only allow reading the clipboard inside
+  // a user gesture such as releasing the finger, not from a timer. So holding
+  // arms the paste, and releasing after the hold does it.
+  let pressArmed = false;
   function startLongPress(e) {
     if (e.target.closest('textarea') || e.target.closest('button')) return;
+    pressArmed = false;
     pasteZone.classList.add('holding');
     longPressTimer = setTimeout(() => {
-      pasteZone.classList.remove('holding');
-      pasteFromClipboard();
+      pressArmed = true;
+      pasteZone.classList.add('armed');
+      if (navigator.vibrate) navigator.vibrate(20);
     }, LONG_PRESS_MS);
+  }
+
+  function endLongPress() {
+    clearTimeout(longPressTimer);
+    pasteZone.classList.remove('holding', 'armed');
+    if (pressArmed) {
+      pressArmed = false;
+      pasteFromClipboard();
+    }
   }
 
   function cancelLongPress() {
     clearTimeout(longPressTimer);
-    pasteZone.classList.remove('holding');
+    pressArmed = false;
+    pasteZone.classList.remove('holding', 'armed');
   }
+
+  // ---------- Your own corrections ----------
+  function editMeaning(idx, td) {
+    const w = currentResult.words[idx];
+    td.innerHTML = `
+      <input class="meaning-input" type="text" value="${escapeHtml(w.en)}" aria-label="Meaning of ${escapeHtml(w.char)}" />
+      <button class="edit-btn meaning-save" title="Save" aria-label="Save">✓</button>`;
+    const input = td.querySelector('input');
+    input.focus();
+    input.select();
+    const save = () => {
+      const value = input.value.trim();
+      setMine(STORAGE_MY_MEANINGS, w.char, value);
+      if (value) {
+        w.en = value;
+        w.mine = true;
+        // Saved words get the corrected meaning too
+        const dict = getDict();
+        const item = dict.find(d => d.char === w.char);
+        if (item) { item.en = value; saveDict(dict); }
+        showToast('Meaning saved ✓');
+        renderWordTable();
+      } else {
+        // Cleared: go back to the automatic meaning
+        w.mine = false;
+        refreshWords();
+      }
+    };
+    td.querySelector('.meaning-save').addEventListener('click', save);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); save(); }
+      if (e.key === 'Escape') renderWordTable();
+    });
+  }
+
+  async function refreshWords() {
+    const segs = currentResult.words.map(w => ({ origin: w.char, result: w.pinyin }));
+    currentResult.words = await wordsInContext(segs, currentResult.englishFull);
+    renderWordTable();
+  }
+
+  function openEditFull() {
+    $('#edit-full-input').value = currentResult.englishFull;
+    $('#edit-full-form').classList.remove('hidden');
+    $('#edit-full').classList.add('hidden');
+    $('#edit-full-input').focus();
+  }
+
+  async function saveEditFull() {
+    const value = $('#edit-full-input').value.trim();
+    setMine(STORAGE_MY_SENTENCES, currentResult.original, value);
+    currentResult.englishFull = value || await translateText(currentResult.original, 'en');
+    // Keep history in line with the corrected translation
+    const hist = getHistory();
+    const entry = hist.find(h => h.original === currentResult.original);
+    if (entry) { entry.english = currentResult.englishFull; saveHistory(hist); renderHistory(); }
+    // Word meanings are picked again against the corrected sentence
+    const segs = currentResult.words.map(w => ({ origin: w.char, result: w.pinyin }));
+    currentResult.words = await wordsInContext(segs, currentResult.englishFull);
+    renderResults();
+    showToast(value ? 'Translation saved ✓' : 'Back to automatic translation');
+  }
+
+  $('#edit-full').addEventListener('click', openEditFull);
+  $('#edit-full-cancel').addEventListener('click', () => {
+    $('#edit-full-form').classList.add('hidden');
+    $('#edit-full').classList.remove('hidden');
+  });
+  $('#edit-full-save').addEventListener('click', saveEditFull);
 
   // ---------- Event listeners ----------
   document.querySelectorAll('.tab').forEach(tab => {
@@ -1011,11 +1123,13 @@
   });
 
   pasteZone.addEventListener('touchstart', startLongPress, { passive: true });
-  pasteZone.addEventListener('touchend', cancelLongPress);
-  pasteZone.addEventListener('touchmove', cancelLongPress);
-  pasteZone.addEventListener('mousedown', startLongPress);
-  pasteZone.addEventListener('mouseup', cancelLongPress);
+  pasteZone.addEventListener('touchend', (e) => { if (pressArmed) e.preventDefault(); endLongPress(); });
+  pasteZone.addEventListener('touchmove', cancelLongPress, { passive: true });
+  pasteZone.addEventListener('touchcancel', cancelLongPress);
+  pasteZone.addEventListener('mousedown', (e) => { if (e.button === 0) startLongPress(e); });
+  pasteZone.addEventListener('mouseup', endLongPress);
   pasteZone.addEventListener('mouseleave', cancelLongPress);
+  $('#btn-paste').addEventListener('click', pasteFromClipboard);
   pasteZone.addEventListener('contextmenu', (e) => e.preventDefault());
 
   btnTranslate.addEventListener('click', () => processText(inputText.value));
@@ -1164,7 +1278,15 @@
       .sort((a, b) => String(b.date).localeCompare(String(a.date)))
       .slice(0, 100);
 
-    return { version: 1, dict, history, deleted };
+    const newest = (a = {}, b = {}) => {
+      const out = { ...a };
+      Object.entries(b).forEach(([k, v]) => { if (!out[k] || (v.t || 0) > (out[k].t || 0)) out[k] = v; });
+      return out;
+    };
+    const meanings = newest(remote.meanings, local.meanings);
+    const sentences = newest(remote.sentences, local.sentences);
+
+    return { version: 1, dict, history, deleted, meanings, sentences };
   }
 
   function syncNow(showResult = false) {
@@ -1175,13 +1297,18 @@
       try {
         const id = await findOrCreateGist();
         const remote = (await readGist(id)) || {};
-        const local = { dict: readRaw(STORAGE_DICT), history: readRaw(STORAGE_HISTORY), deleted: getDeleted() };
+        const local = {
+          dict: readRaw(STORAGE_DICT), history: readRaw(STORAGE_HISTORY), deleted: getDeleted(),
+          meanings: getMine(STORAGE_MY_MEANINGS), sentences: getMine(STORAGE_MY_SENTENCES)
+        };
         const merged = mergeData(local, remote);
         localStorage.setItem(STORAGE_DICT, JSON.stringify(merged.dict));
         localStorage.setItem(STORAGE_HISTORY, JSON.stringify(merged.history));
         saveDeleted(merged.deleted);
+        localStorage.setItem(STORAGE_MY_MEANINGS, JSON.stringify(merged.meanings));
+        localStorage.setItem(STORAGE_MY_SENTENCES, JSON.stringify(merged.sentences));
         const content = JSON.stringify(merged);
-        if (content !== JSON.stringify({ version: 1, dict: remote.dict, history: remote.history, deleted: remote.deleted })) {
+        if (content !== JSON.stringify({ version: 1, dict: remote.dict, history: remote.history, deleted: remote.deleted, meanings: remote.meanings, sentences: remote.sentences })) {
           await gh('/gists/' + id, { method: 'PATCH', body: JSON.stringify({ files: { [SYNC_FILE]: { content } } }) });
         }
         localStorage.setItem(SYNC_LAST, new Date().toISOString());

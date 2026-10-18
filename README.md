@@ -82,3 +82,7 @@ Then open `http://localhost:8080` in your phone's browser (same Wi-Fi network).
 ## Sync between devices
 
 Settings › Sync devices stores history and dictionary in a private gist (`kuai-chinese-sync.json`) in your GitHub account. Create a token with only the `gist` scope and paste it on each device. Changes sync a few seconds after you make them and when the app comes back to the foreground; deletions sync too.
+
+## Your own corrections
+
+Tap ✎ next to a word's meaning or "Edit translation" under the full translation to correct it. Corrections are saved per word and per sentence, used before anything automatic the next time, and travel with sync. Clear the field to go back to the automatic translation.
