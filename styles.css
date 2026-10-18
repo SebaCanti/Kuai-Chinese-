@@ -1532,7 +1532,6 @@ body::after {
   .dict-footer .btn { font-size: 26px; padding: 14px; }
   #dict-empty { font-size: 24px; }
   #deck .quiz-card, #quiz .quiz-card { max-width: 540px; }
-  .deck-list .chip { font-size: 1.6rem; }
   .deck-hint, #deck-title, #quiz-title { font-size: 22px; }
   .quiz-char { font-size: 5rem; }
   .quiz-pinyin { font-size: 1.7rem; }
@@ -1544,44 +1543,41 @@ body::after {
   #quiz .text-btn { font-size: 22px; }
 }
 
-/* ---- Menu and section titles in regular letters (not the pixel font) ---- */
-:root { --label-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+/* ---- Menu and section titles in Chinese, pixel look kept (CJK falls back to the logo font) ---- */
 .tab,
 .settings-side-tab,
 .section-header h2,
 .dict-col h3 {
-  font-family: var(--label-font);
-  font-weight: 600;
+  font-family: var(--font), var(--zh-font);
+  font-weight: normal;
 }
-.tab { font-size: 15px; letter-spacing: 1px; }
-.section-header h2 { font-size: 20px; letter-spacing: 1px; }
-.dict-col h3 { font-size: 13px; letter-spacing: 0.5px; line-height: 1.25; }
-.dict-col .count { font-family: var(--font); }
+.tab { font-size: 22px; letter-spacing: 2px; }
+.section-header h2 { font-size: 26px; letter-spacing: 2px; }
+.dict-col h3 { font-size: 19px; letter-spacing: 1px; line-height: 1.25; }
 @media (max-width: 700px) {
-  .tab { font-size: 14px; letter-spacing: 0.5px; }
-  .settings-side-tab { font-size: 14px; letter-spacing: 0.5px; }
+  .tab { font-size: 21px; letter-spacing: 1px; }
+  .settings-side-tab { font-size: 20px; letter-spacing: 1px; }
 }
 @media (max-width: 420px) {
-  .dict-col h3 { font-size: 12px; letter-spacing: 0; }
+  .dict-col h3 { font-size: 17px; letter-spacing: 0; }
 }
 @media (min-width: 900px) {
-  .tab { font-size: 16px; }
-  #tab-dictionary .section-header h2 { font-size: 24px; }
-  .dict-col h3 { font-size: 16px; }
+  .tab { font-size: 24px; }
+  #tab-dictionary .section-header h2 { font-size: 30px; }
+  .dict-col h3 { font-size: 22px; }
 }
 
+/* Cards inside an open pile: bigger characters */
+#deck .chip { font-size: 2rem; padding: 10px 14px; }
+@media (min-width: 900px) { #deck .chip, .deck-list .chip { font-size: 2.4rem; } }
+
 /* ---- Weekly Program ---- */
-.tab-short { display: none; }
-@media (max-width: 700px) {
-  .tab-long { display: none; }
-  .tab-short { display: inline; }
-}
 .week-now h3, .week-list + h3 { margin-bottom: 4px; }
 .week-dates { color: var(--text-muted); font-size: 19px; text-shadow: none; }
 .week-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; font-size: 22px; }
 .week-count { font-size: 64px; line-height: 1; color: var(--primary); }
 .pace {
-  font-family: var(--label-font);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
