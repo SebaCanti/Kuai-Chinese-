@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=27" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=27" />
+  <link rel="icon" href="icon.svg?v=28" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=28" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=27" />
+  <link rel="stylesheet" href="styles.css?v=28" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -33,16 +33,16 @@
         </div>
       </div>
       <nav class="nav-tabs">
-        <button class="tab active" data-tab="translate">Translate</button>
-        <button class="tab" data-tab="history">History</button>
-        <button class="tab" data-tab="dictionary">Dictionary</button>
-        <button class="tab" data-tab="weekly"><span class="tab-long">Weekly Program</span><span class="tab-short">Weekly</span></button>
-        <button class="tab tab-settings-top" data-tab="settings">Settings</button>
+        <button class="tab active" data-tab="translate" aria-label="Translate">翻译</button>
+        <button class="tab" data-tab="history" aria-label="History">历史</button>
+        <button class="tab" data-tab="dictionary" aria-label="Dictionary">词典</button>
+        <button class="tab" data-tab="weekly" aria-label="Weekly Program">每周计划</button>
+        <button class="tab tab-settings-top" data-tab="settings" aria-label="Settings">设置</button>
       </nav>
     </header>
 
     <!-- Phone: Settings lives in a side tab at the bottom -->
-    <button class="tab settings-side-tab" data-tab="settings" aria-label="Settings">⚙ Settings</button>
+    <button class="tab settings-side-tab" data-tab="settings" aria-label="Settings">⚙ 设置</button>
 
     <!-- Translate Tab -->
     <main id="tab-translate" class="tab-content active">
@@ -147,7 +147,7 @@
     <!-- History Tab -->
     <main id="tab-history" class="tab-content">
       <div class="section-header">
-        <h2>&gt; HISTORY</h2>
+        <h2>&gt; 历史</h2>
         <button id="btn-clear-history" class="btn danger small">Clear all</button>
       </div>
       <div id="history-list" class="list-container">
@@ -158,19 +158,19 @@
     <!-- Dictionary Tab -->
     <main id="tab-dictionary" class="tab-content">
       <div class="section-header">
-        <h2>&gt; MY DICTIONARY</h2>
+        <h2>&gt; 我的词典</h2>
       </div>
       <div id="dict-board" class="dict-board">
         <section class="dict-col" data-status="known">
-          <h3>MEMORIZED</h3>
+          <h3>已记住</h3>
           <button class="pile" id="pile-known" data-status="known" aria-label="Open memorized cards"></button>
         </section>
         <section class="dict-col" data-status="new">
-          <h3>NEW <span class="count" id="count-new">0</span></h3>
+          <h3>新词 <span class="count" id="count-new">0</span></h3>
           <div class="dict-cards" id="col-new"></div>
         </section>
         <section class="dict-col" data-status="learning">
-          <h3>NOT MEMORIZED</h3>
+          <h3>未记住</h3>
           <button class="pile" id="pile-learning" data-status="learning" aria-label="Open not memorized cards"></button>
         </section>
       </div>
@@ -184,7 +184,7 @@
     <!-- Weekly Program: words saved per week and the pace -->
     <main id="tab-weekly" class="tab-content">
       <div class="section-header">
-        <h2>&gt; WEEKLY PROGRAM</h2>
+        <h2>&gt; 每周计划</h2>
       </div>
       <section class="result-block week-now" id="week-now"></section>
       <section class="result-block">
@@ -198,7 +198,7 @@
     <div id="deck" class="quiz hidden" role="dialog" aria-modal="true" aria-labelledby="deck-title">
       <div class="quiz-card">
         <div class="quiz-head">
-          <span id="deck-title">&gt; MEMORIZED</span>
+          <span id="deck-title">&gt; 已记住</span>
           <button id="deck-close" class="quiz-x" aria-label="Close">×</button>
         </div>
         <p class="deck-hint">Tap a word to flip it and change its status.</p>
@@ -284,7 +284,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; SETTINGS <span class="app-version">v27</span></h2>
+        <h2>&gt; 设置 <span class="app-version">v28</span></h2>
       </div>
 
       <section class="result-block">
@@ -351,12 +351,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v27</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v28</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

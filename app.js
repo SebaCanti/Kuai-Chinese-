@@ -314,7 +314,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=27', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=28', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -360,7 +360,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=27', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=28', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -893,7 +893,7 @@
   function renderDeck() {
     const items = shownDict().filter(d => d.status === deckStatus);
     const kind = posFilter === 'all' ? '' : ` · ${POS_PLURAL[posFilter].toUpperCase()}`;
-    $('#deck-title').textContent = `> ${deckStatus === 'known' ? 'MEMORIZED' : 'NOT MEMORIZED'}${kind} (${items.length})`;
+    $('#deck-title').textContent = `> ${deckStatus === 'known' ? '已记住' : '未记住'}${kind} (${items.length})`;
     $('#deck-list').innerHTML = items.length
       ? items.map(chipHtml).join('')
       : '<p class="empty-state">No cards in this pile.</p>';
