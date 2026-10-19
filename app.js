@@ -314,7 +314,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=28', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=29', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -360,7 +360,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=28', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=29', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -1505,7 +1505,21 @@
   pasteZone.addEventListener('mouseleave', cancelLongPress);
   pasteZone.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  btnTranslate.addEventListener('click', () => processText(inputText.value));
+  // Phone app: Translate Now pastes what you copied and translates it, unless you
+  // typed something in the box yourself since the last translation.
+  const isPhone = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+  let typedInBox = false;
+  inputText.addEventListener('input', () => { typedInBox = true; });
+  btnTranslate.addEventListener('click', async () => {
+    if (isPhone && !(typedInBox && inputText.value.trim()) && navigator.clipboard && navigator.clipboard.readText) {
+      try {
+        const copied = (await navigator.clipboard.readText()).trim();
+        if (copied) inputText.value = copied;
+      } catch (e) { /* no clipboard access: translate what is in the box */ }
+    }
+    typedInBox = false;
+    processText(inputText.value);
+  });
 
   inputText.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

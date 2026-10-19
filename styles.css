@@ -1630,3 +1630,18 @@ body::after {
   #app { max-width: 1180px; }
   .tab-content { padding: 20px 28px; }
 }
+
+/* ---- Phone app: 学习 instead of the paste instructions ---- */
+.paste-study { display: none; }
+@media (max-width: 700px), (pointer: coarse) {
+  .paste-hint, .paste-sub { display: none; }
+  .paste-study {
+    display: block;
+    font-family: var(--zh-font);
+    font-size: 24px;
+    letter-spacing: 4px;
+    color: var(--primary);
+    text-shadow: 0 0 8px var(--primary-glow);
+    margin: 4px 0 14px;
+  }
+}
