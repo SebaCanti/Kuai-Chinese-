@@ -1505,13 +1505,13 @@
   pasteZone.addEventListener('mouseleave', cancelLongPress);
   pasteZone.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  // Computer: Translate Now pastes what you copied and translates it, unless you
+  // Phone app: Translate Now pastes what you copied and translates it, unless you
   // typed something in the box yourself since the last translation.
-  const isComputer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const isPhone = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
   let typedInBox = false;
   inputText.addEventListener('input', () => { typedInBox = true; });
   btnTranslate.addEventListener('click', async () => {
-    if (isComputer && !(typedInBox && inputText.value.trim()) && navigator.clipboard && navigator.clipboard.readText) {
+    if (isPhone && !(typedInBox && inputText.value.trim()) && navigator.clipboard && navigator.clipboard.readText) {
       try {
         const copied = (await navigator.clipboard.readText()).trim();
         if (copied) inputText.value = copied;
