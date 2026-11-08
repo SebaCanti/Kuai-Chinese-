@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=32" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=32" />
+  <link rel="icon" href="icon.svg?v=33" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=33" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=33" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -222,7 +222,7 @@
           <button id="quiz-close" class="quiz-x" aria-label="Close">×</button>
         </div>
         <div class="quiz-char-wrap">
-          <button id="quiz-favorite" class="fav-btn" title="Favorite" aria-label="Toggle favorite" aria-pressed="false">☆</button>
+          <button id="quiz-favorite" class="fav-btn" title="Favorite" aria-label="Toggle favorite" aria-pressed="false"><svg class="fav-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6 6.2 20.7l1.1-6.5L2.6 9.6l6.5-.9L12 2.8z"/></svg></button>
           <div id="quiz-char" class="quiz-char"></div>
           <button id="quiz-char-edit" class="edit-btn quiz-char-edit" title="Edit Chinese word" aria-label="Edit Chinese word">✎</button>
         </div>
@@ -293,7 +293,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; 设置 <span class="app-version">V32</span></h2>
+        <h2>&gt; 设置 <span class="app-version">V33</span></h2>
       </div>
 
       <section class="result-block">
@@ -360,12 +360,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version V32</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version V33</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').then((reg) => {

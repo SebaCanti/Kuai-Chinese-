@@ -416,7 +416,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=32', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=33', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -462,7 +462,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=32', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=33', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -1080,8 +1080,10 @@
   }
 
   function chipHtml(item) {
-    const star = item.favorite ? '★' : '';
-    return `<button class="chip${item.favorite ? ' favorite' : ''}" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${star ? `<span class="chip-star">${star}</span>` : ''}${escapeHtml(item.char)}</button>`;
+    const star = item.favorite
+      ? '<span class="chip-star" aria-hidden="true"><svg class="fav-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6 6.2 20.7l1.1-6.5L2.6 9.6l6.5-.9L12 2.8z"/></svg></span>'
+      : '';
+    return `<button class="chip${item.favorite ? ' favorite' : ''}" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${star}${escapeHtml(item.char)}</button>`;
   }
 
   // ---------- Deck (one pile, as a study list) ----------
@@ -1139,11 +1141,15 @@
   let quizMode = 'random'; // 'random' | 'word'
   let quizPile = 'known'; // which pile Random draws from
 
+  // SVG stars — VT323 has no ★/☆ glyphs, so plain text looked like an empty box.
+  const STAR_SVG_ON = '<svg class="fav-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6 6.2 20.7l1.1-6.5L2.6 9.6l6.5-.9L12 2.8z"/></svg>';
+  const STAR_SVG_OFF = '<svg class="fav-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6 6.2 20.7l1.1-6.5L2.6 9.6l6.5-.9L12 2.8z"/></svg>';
+
   function renderFavoriteBtn(item) {
     const btn = $('#quiz-favorite');
     if (!btn || !item) return;
     const on = !!item.favorite;
-    btn.textContent = on ? '★' : '☆';
+    btn.innerHTML = on ? STAR_SVG_ON : STAR_SVG_OFF;
     btn.classList.toggle('on', on);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.title = on ? 'Remove favorite' : 'Add favorite';

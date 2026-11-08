@@ -1265,11 +1265,13 @@ body::after {
 .dict-col[data-status="learning"] .chip { border-color: var(--danger); }
 .chip.favorite { border-color: var(--accent); }
 .chip-star {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin-right: 4px;
   color: var(--accent);
-  font-size: 0.85em;
+  vertical-align: middle;
 }
+.chip-star .fav-icon { width: 0.85em; height: 0.85em; display: block; }
 .quiz-actions .btn:disabled { opacity: 0.3; }
 
 /* ===== Piles: memorized, favorites, not memorized ===== */
@@ -1506,10 +1508,12 @@ body::after {
   top: 6px;
   left: 6px;
   z-index: 1;
-  font: inherit;
-  font-size: 28px;
-  line-height: 1;
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 4px;
   background: transparent;
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
@@ -1517,6 +1521,7 @@ body::after {
   cursor: pointer;
   text-shadow: none;
 }
+.fav-btn .fav-icon { width: 22px; height: 22px; display: block; }
 .fav-btn.on {
   color: var(--accent);
   border-color: var(--accent);
