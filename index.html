@@ -9,13 +9,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kuai Chinese" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg?v=29" type="image/svg+xml" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=29" />
+  <link rel="icon" href="icon.svg?v=30" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=30" />
   <title>Kuai Chinese 快中文</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@700&display=swap" />
   <!-- Bump ?v= on css/js links when they change so browsers drop cached copies. -->
-  <link rel="stylesheet" href="styles.css?v=29" />
+  <link rel="stylesheet" href="styles.css?v=30" />
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.6/dist/index.js"></script>
 </head>
 <body>
@@ -151,6 +151,9 @@
         <h2>&gt; 历史</h2>
         <button id="btn-clear-history" class="btn danger small">Clear all</button>
       </div>
+      <div class="history-search-wrap">
+        <input id="history-search" class="history-search" type="search" enterkeyhint="search" autocomplete="off" placeholder="Search Chinese or English…" aria-label="Search history in Chinese or English" />
+      </div>
       <div id="history-list" class="list-container">
         <p class="empty-state">No phrases in your history yet.</p>
       </div>
@@ -165,21 +168,25 @@
         <section class="dict-col" data-status="known">
           <h3>已记住</h3>
           <button class="pile" id="pile-known" data-status="known" aria-label="Open memorized cards"></button>
+          <button class="btn primary small pile-random" data-pile="known" id="btn-random-known">Random</button>
         </section>
-        <section class="dict-col" data-status="new">
-          <h3>新词 <span class="count" id="count-new">0</span></h3>
-          <div class="dict-cards" id="col-new"></div>
+        <section class="dict-col" data-status="favorite">
+          <h3>收藏</h3>
+          <button class="pile" id="pile-favorite" data-status="favorite" aria-label="Open favorite cards"></button>
+          <button class="btn primary small pile-random" data-pile="favorite" id="btn-random-favorite">Random</button>
         </section>
         <section class="dict-col" data-status="learning">
           <h3>未记住</h3>
           <button class="pile" id="pile-learning" data-status="learning" aria-label="Open not memorized cards"></button>
+          <button class="btn primary small pile-random" data-pile="learning" id="btn-random-learning">Random</button>
         </section>
       </div>
+      <section id="dict-new" class="dict-new hidden">
+        <h3>新词 <span class="count" id="count-new">0</span></h3>
+        <div class="dict-cards" id="col-new"></div>
+      </section>
       <p id="dict-empty" class="empty-state">You haven’t saved any words yet.</p>
       <div id="pos-filter" class="pos-filter hidden" aria-label="Show only one word type"></div>
-      <div class="dict-footer">
-        <button id="btn-random" class="btn primary">Random</button>
-      </div>
     </main>
 
     <!-- Weekly Program: words saved per week and the pace -->
@@ -215,6 +222,7 @@
           <button id="quiz-close" class="quiz-x" aria-label="Close">×</button>
         </div>
         <div class="quiz-char-wrap">
+          <button id="quiz-favorite" class="fav-btn" title="Favorite" aria-label="Toggle favorite" aria-pressed="false">☆</button>
           <div id="quiz-char" class="quiz-char"></div>
           <button id="quiz-char-edit" class="edit-btn quiz-char-edit" title="Edit Chinese word" aria-label="Edit Chinese word">✎</button>
         </div>
@@ -285,7 +293,7 @@
     <!-- Settings Tab -->
     <main id="tab-settings" class="tab-content">
       <div class="section-header">
-        <h2>&gt; 设置 <span class="app-version">v29</span></h2>
+        <h2>&gt; 设置 <span class="app-version">V30</span></h2>
       </div>
 
       <section class="result-block">
@@ -352,12 +360,12 @@
 
       <section class="result-block">
         <h3>&gt; ABOUT</h3>
-        <p class="settings-desc">Kuai Chinese 快中文 <strong>version v29</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
+        <p class="settings-desc">Kuai Chinese 快中文 <strong>version V30</strong> — Learn Chinese fast with Pinyin, translations and a personal dictionary. Word meanings from <a class="sync-link" href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict" target="_blank" rel="noopener">CC-CEDICT</a> (CC BY-SA 4.0).</p>
       </section>
     </main>
   </div>
 
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(console.error);

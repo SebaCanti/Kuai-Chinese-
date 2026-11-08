@@ -129,13 +129,14 @@
     return JSON.stringify(x) === JSON.stringify(y);
   }
   // Each word has a flash-card status: 'new' | 'known' (memorized) | 'learning' (not memorized)
+  // favorite is a separate star flag (a card can be favorite in any status).
   function getDict() {
     let items;
     try { items = JSON.parse(localStorage.getItem(STORAGE_DICT) || '[]'); }
     catch { items = []; }
     const mine = getMine(STORAGE_MY_MEANINGS);
     return items.map(d => {
-      const w = { status: 'new', ...d };
+      const w = { status: 'new', favorite: false, ...d };
       // Your own meaning for a word always wins, even if sync brings back an older copy of the card
       if (mine[w.char] && mine[w.char].en) w.en = mine[w.char].en;
       // Example sentences are only ones you added: the phrase you saved the word from, or
@@ -210,6 +211,7 @@
       en: word.en,
       es: word.es || '',
       status: 'new',
+      favorite: false,
       pos: (cedict && posEn) ? guessPos(word.char, word.en) : '',
       sentences: word.example ? [{ zh: word.example, en: word.exampleEn || '' }] : [],
       date: new Date().toISOString()
@@ -243,12 +245,21 @@
       const u = new SpeechSynthesisUtterance(text);
       u.voice = zhVoice;
       u.lang = zhVoice.lang;
-      u.rate = 0.85;
+      // Slower + full volume so tones stay clear on phone speakers
+      u.rate = 0.62;
+      u.pitch = 1;
+      u.volume = 1;
       speechSynthesis.speak(u);
       return;
     }
-    if (ttsAudio) ttsAudio.pause();
+    if (ttsAudio) {
+      try { ttsAudio.pause(); } catch {}
+      ttsAudio = null;
+    }
+    // Fallback TTS: max volume + slower playback (no Web Audio boost — CORS would mute it)
     ttsAudio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-CN&q=${encodeURIComponent(text.slice(0, 190))}`);
+    ttsAudio.volume = 1;
+    ttsAudio.playbackRate = 0.78;
     ttsAudio.play().catch(() => showToast('Couldn’t play audio'));
   }
 
@@ -314,7 +325,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=29', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=30', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -360,7 +371,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=29', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=30', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -478,7 +489,7 @@
       .split(/[^a-z]+/).filter(w => w && !STOP.has(w)).map(stem);
   }
   function pickSense(senses, context) {
-    let best = { text: senses[0], score: 0 };
+    let best = { text: senses[0] || '', score: 0 };
     senses.forEach(sense => {
       const score = contentWords(sense).filter(w => context.has(w)).length;
       if (score > best.score) best = { text: sense, score };
@@ -486,10 +497,29 @@
     return best;
   }
 
+  // Prefer the wording that actually appears in the sentence translation
+  // (e.g. "miss" from "I miss you") when it matches a dictionary sense.
+  function glossFromSentence(sense, englishText) {
+    if (!sense || !englishText) return sense || '';
+    const engWords = (englishText.match(/[A-Za-z']+/g) || []);
+    const senseWords = contentWords(sense);
+    if (!senseWords.length) return sense;
+    const hits = [];
+    senseWords.forEach(sw => {
+      const found = engWords.find(ew => stem(ew.toLowerCase()) === sw);
+      if (found && !hits.some(h => h.toLowerCase() === found.toLowerCase())) hits.push(found);
+    });
+    if (!hits.length) return sense;
+    // Keep a leading "to " for verb-like CEDICT senses when the sentence only had the bare verb
+    if (/^to\s+/i.test(sense) && hits.length === 1 && !/^to\s+/i.test(hits[0])) {
+      return 'to ' + hits[0].toLowerCase();
+    }
+    return hits.join(' ');
+  }
+
   // Turns segments into table rows with a meaning each. Compound words always
-  // stay together. Candidates for each word are the word list's senses plus
-  // Google's translation of the word alone; the one that also appears in the
-  // sentence's translation wins. Your own corrections always come first.
+  // stay together. The sense that fits the full-sentence translation wins, and
+  // the table shows that contextual meaning (not an unrelated default sense).
   async function wordsInContext(segs, englishText) {
     const dict = await loadCedict();
     const context = new Set(contentWords(englishText));
@@ -502,16 +532,27 @@
         // Several meanings of yours ("to want; to miss"): show the one that fits, or all of them
         const own = splitMeanings(mine[s.origin].en);
         const fit = pickSense(own, context);
-        return { ...row, en: fit.score > 0 ? fit.text : own.join('; '), mine: true };
+        const chosen = fit.score > 0 ? fit.text : own.join('; ');
+        return { ...row, en: fit.score > 0 ? glossFromSentence(chosen, englishText) : chosen, mine: true };
       }
       let g = (google[s.origin] || '').trim();
       if (g === s.origin || g === '[Translation error]') g = '';
       if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
       const senses = dict && dict.has(s.origin) ? dict.get(s.origin).split('|').filter(Boolean) : [];
-      const pick = pickSense(g ? [...senses, g] : senses, context);
-      if (pick.score > 0) return { ...row, en: pick.text };
-      // Nothing matches the sentence: the word list's main sense for single
-      // characters (Google is odd on lone characters), Google for compounds.
+      const candidates = g ? [...senses, g] : senses.slice();
+      const pick = pickSense(candidates, context);
+      if (pick.score > 0) {
+        return { ...row, en: glossFromSentence(pick.text, englishText) };
+      }
+      // Google's lone-word gloss only if it also shows up in the sentence translation
+      if (g) {
+        const gScore = contentWords(g).filter(w => context.has(w)).length;
+        if (gScore > 0) return { ...row, en: glossFromSentence(g, englishText) };
+      }
+      // Looser pass: any sense whose wording appears inside the English sentence
+      const loose = senses.find(sense => contentWords(sense).some(w => context.has(w)));
+      if (loose) return { ...row, en: glossFromSentence(loose, englishText) };
+      // Last resort: compounds prefer Google; single characters prefer the word list
       const compound = Array.from(s.origin).length > 1;
       return { ...row, en: (compound ? g || senses[0] : senses[0] || g) || '' };
     });
@@ -771,13 +812,35 @@
   }
 
   // ---------- History & Dictionary ----------
+  const historySearch = $('#history-search');
+  function historyQuery() {
+    return (historySearch && historySearch.value || '').trim().toLowerCase();
+  }
+  function historyMatches(item, q) {
+    if (!q) return true;
+    const hay = [
+      item.original,
+      item.english,
+      item.chinese,
+      item.pinyin,
+      item.spanish
+    ].filter(Boolean).join('\n').toLowerCase();
+    return hay.includes(q);
+  }
+
   function renderHistory() {
     const hist = getHistory();
+    const q = historyQuery();
+    const shown = hist.filter(item => historyMatches(item, q));
     if (hist.length === 0) {
       historyList.innerHTML = '<p class="empty-state">No phrases in your history yet.</p>';
       return;
     }
-    historyList.innerHTML = hist.map(item => `
+    if (shown.length === 0) {
+      historyList.innerHTML = '<p class="empty-state">No matches for that search.</p>';
+      return;
+    }
+    historyList.innerHTML = shown.map(item => `
       <div class="card-item" data-id="${item.id}">
         <div class="original">${escapeHtml(item.original)}</div>
         <button class="speak-btn" data-speak="${escapeHtml(item.isChinese ? item.original : item.chinese)}" title="Play audio" aria-label="Play audio">🔊</button>
@@ -793,18 +856,22 @@
 
     historyList.querySelectorAll('.reuse-btn').forEach((btn, i) => {
       btn.addEventListener('click', () => {
-        inputText.value = hist[i].original;
+        inputText.value = shown[i].original;
         switchTab('translate');
-        processText(hist[i].original);
+        processText(shown[i].original);
       });
     });
     historyList.querySelectorAll('.delete-hist').forEach((btn, i) => {
       btn.addEventListener('click', () => {
-        const newHist = getHistory().filter(h => h.id !== hist[i].id);
+        const newHist = getHistory().filter(h => h.id !== shown[i].id);
         saveHistory(newHist);
         renderHistory();
       });
     });
+  }
+
+  if (historySearch) {
+    historySearch.addEventListener('input', () => renderHistory());
   }
 
   function setStatus(id, status) {
@@ -818,6 +885,27 @@
     saveDict(dict);
     if (currentResult) renderResults();
     renderDictionary();
+  }
+
+  function setFavorite(id, favorite) {
+    const dict = getDict();
+    const item = dict.find(d => d.id === id);
+    if (!item) return;
+    item.favorite = !!favorite;
+    saveDict(dict);
+    if (quizItem && quizItem.id === id) {
+      quizItem.favorite = item.favorite;
+      renderFavoriteBtn(quizItem);
+    }
+    renderDictionary();
+    if (!deck.classList.contains('hidden')) renderDeck();
+    showToast(item.favorite ? 'Added to favorites' : 'Removed from favorites');
+  }
+
+  function toggleFavorite(id) {
+    const item = getDict().find(d => d.id === id);
+    if (!item) return;
+    setFavorite(id, !item.favorite);
   }
 
   function removeFromDict(id) {
@@ -854,46 +942,56 @@
     renderDictionary();
   });
 
+  function pileItems(pile, dict = shownDict()) {
+    if (pile === 'favorite') return dict.filter(d => d.favorite);
+    return dict.filter(d => d.status === pile);
+  }
+
   function renderDictionary() {
     const all = getDict();
     renderPosFilter(all);
     const dict = shownDict();
     dictEmpty.classList.toggle('hidden', all.length > 0);
     dictBoard.classList.toggle('hidden', all.length === 0);
-    $('#btn-random').disabled = dict.length === 0;
+    const newSection = $('#dict-new');
+    if (newSection) newSection.classList.toggle('hidden', all.length === 0);
 
-    // New words: compact chips in the middle column
+    // New words: compact chips below the three piles
     const fresh = dict.filter(d => d.status === 'new');
     $('#count-new').textContent = fresh.length;
     $('#col-new').innerHTML = fresh.map(chipHtml).join('');
 
-    // Memorized (left) and not memorized (right): a pile of stacked cards
-    ['known', 'learning'].forEach(status => {
-      const items = dict.filter(d => d.status === status);
+    // Memorized, favorites, not memorized: three piles of stacked cards
+    ['known', 'favorite', 'learning'].forEach(status => {
+      const items = pileItems(status, dict);
       const pile = $(`#pile-${status}`);
+      const randomBtn = $(`#btn-random-${status}`);
       const layers = Math.min(items.length, 5);
       pile.classList.toggle('empty', items.length === 0);
       pile.style.setProperty('--layers', layers);
       pile.innerHTML = items.length
         ? `<span class="pile-top">${escapeHtml(items[0].char)}</span><span class="pile-count">${items.length} card${items.length === 1 ? '' : 's'}</span>`
         : '<span class="pile-count">No cards yet</span>';
+      if (randomBtn) randomBtn.disabled = items.length === 0;
     });
     if (!deck.classList.contains('hidden')) renderDeck();
     if ($('#tab-weekly').classList.contains('active')) renderWeekly();
   }
 
   function chipHtml(item) {
-    return `<button class="chip" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${escapeHtml(item.char)}</button>`;
+    const star = item.favorite ? '★' : '';
+    return `<button class="chip${item.favorite ? ' favorite' : ''}" data-id="${item.id}" title="${escapeHtml(item.pinyin)}">${star ? `<span class="chip-star">${star}</span>` : ''}${escapeHtml(item.char)}</button>`;
   }
 
   // ---------- Deck (one pile, as a study list) ----------
   const deck = $('#deck');
   let deckStatus = 'known';
+  const PILE_TITLES = { known: '已记住', favorite: '收藏', learning: '未记住' };
 
   function renderDeck() {
-    const items = shownDict().filter(d => d.status === deckStatus);
+    const items = pileItems(deckStatus);
     const kind = posFilter === 'all' ? '' : ` · ${POS_PLURAL[posFilter].toUpperCase()}`;
-    $('#deck-title').textContent = `> ${deckStatus === 'known' ? '已记住' : '未记住'}${kind} (${items.length})`;
+    $('#deck-title').textContent = `> ${PILE_TITLES[deckStatus] || deckStatus}${kind} (${items.length})`;
     $('#deck-list').innerHTML = items.length
       ? items.map(chipHtml).join('')
       : '<p class="empty-state">No cards in this pile.</p>';
@@ -938,11 +1036,23 @@
   const quiz = $('#quiz');
   let quizItem = null;
   let quizMode = 'random'; // 'random' | 'word'
+  let quizPile = 'known'; // which pile Random draws from
+
+  function renderFavoriteBtn(item) {
+    const btn = $('#quiz-favorite');
+    if (!btn || !item) return;
+    const on = !!item.favorite;
+    btn.textContent = on ? '★' : '☆';
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = on ? 'Remove favorite' : 'Add favorite';
+  }
 
   function showCard(item) {
     quizItem = item;
     $('#quiz-char').textContent = item.char;
     $('#quiz-pinyin').textContent = item.pinyin;
+    renderFavoriteBtn(item);
     renderCardPos(item);
     renderCardMeaning(item);
     $('#quiz-meaning-form').classList.add('hidden');
@@ -1095,19 +1205,21 @@
   }
 
   function nextQuizCard() {
-    const dict = shownDict();
-    if (!dict.length) { closeQuiz(); return; }
-    let pick = dict[Math.floor(Math.random() * dict.length)];
-    if (dict.length > 1 && quizItem && pick.id === quizItem.id) {
-      pick = dict[(dict.indexOf(pick) + 1) % dict.length];
+    const pool = pileItems(quizPile);
+    if (!pool.length) { closeQuiz(); return; }
+    let pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pool.length > 1 && quizItem && pick.id === quizItem.id) {
+      pick = pool[(pool.indexOf(pick) + 1) % pool.length];
     }
     showCard(pick);
     speak(pick.char);
   }
 
-  function openQuiz() {
+  function openQuiz(pile) {
+    quizPile = pile || 'known';
     quizMode = 'random';
-    $('#quiz-title').textContent = '> RANDOM CARD';
+    const label = PILE_TITLES[quizPile] || quizPile;
+    $('#quiz-title').textContent = `> RANDOM · ${label}`;
     $('#quiz-next').classList.remove('hidden');
     quiz.classList.remove('hidden');
     nextQuizCard();
@@ -1118,7 +1230,15 @@
     if ('speechSynthesis' in window) speechSynthesis.cancel();
   }
 
-  $('#btn-random').addEventListener('click', openQuiz);
+  document.querySelectorAll('.pile-random').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openQuiz(btn.dataset.pile);
+    });
+  });
+  $('#quiz-favorite').addEventListener('click', () => {
+    if (quizItem) toggleFavorite(quizItem.id);
+  });
   $('#quiz-close').addEventListener('click', closeQuiz);
   quiz.addEventListener('click', (e) => { if (e.target === quiz) closeQuiz(); });
   $('#quiz-audio').addEventListener('click', () => quizItem && speak(quizItem.char));
