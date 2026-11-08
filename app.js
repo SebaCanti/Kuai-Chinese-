@@ -416,7 +416,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=33', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=34', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -462,7 +462,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=33', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=34', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -564,88 +564,154 @@
   }
 
   // ---------- Word meanings that fit the sentence ----------
-  // The word list holds several senses per word ("to think|to believe|to want").
-  // We pick the sense whose words appear in the sentence's English translation,
-  // so 想 in "Don't want you to spend money" reads "to want", not "to think".
-  const STOP = new Set(['a', 'an', 'the', 'to', 'of', 'sb', 'sth', 'be', 'is', 'are', 'it', 'on', 'in', 'at',
-    'for', 'and', 'or', 'with', 'as', 'by', 'do', 'one', 'that', 'this', 'etc', 'used', 'something', 'someone',
-    'have', 'has', 'had', 'there', 'get', 'got']);
+  // Align each Chinese word to the English sentence translation so the
+  // word-by-word table shows the SAME sense the phrase used (想 → "miss"
+  // in "I miss you", not the dictionary's default "to think").
+  const STOP = new Set(['a', 'an', 'the', 'to', 'of', 'sb', 'sth', 'be', 'is', 'are', 'on', 'in', 'at',
+    'for', 'and', 'or', 'with', 'as', 'by', 'do', 'one', 'etc', 'used', 'something', 'someone',
+    'have', 'has', 'had', 'there', 'get', 'got', 'from', 'into', 'than', 'then', 'so', 'very']);
+  // Pronouns / negations must stay — they are real row meanings (我→I, 不→not).
+  const KEEP = new Set(['i', 'me', 'my', 'mine', 'you', 'your', 'yours', 'he', 'him', 'his', 'she', 'her', 'hers',
+    'we', 'us', 'our', 'they', 'them', 'their', 'it', 'its', 'this', 'that', 'these', 'those',
+    'not', 'no', 'yes', 'who', 'what', 'where', 'when', 'why', 'how']);
   function stem(w) {
-    if (w.length > 4) return w.replace(/(ing|ed|es|s)$/, '');
+    if (w.length > 4) return w.replace(/(ing|ed|ies|es|s)$/, '').replace(/ie$/, 'y');
     return w;
   }
-  function contentWords(str) {
+  function senseKeys(str) {
     return (str || '').toLowerCase()
       .replace(/n['’]t\b/g, ' not').replace(/['’](s|re|m|ll|ve|d)\b/g, '')
-      .split(/[^a-z]+/).filter(w => w && !STOP.has(w)).map(stem);
+      .replace(/\([^)]*\)/g, ' ')
+      .split(/[^a-z]+/)
+      .filter(w => w && (KEEP.has(w) || !STOP.has(w)))
+      .map(stem);
   }
+  function contentWords(str) { return senseKeys(str); }
+
+  function englishTokens(englishText) {
+    return (englishText.match(/[A-Za-z']+/g) || []).map((raw, index) => ({
+      raw,
+      lower: raw.toLowerCase(),
+      stem: stem(raw.toLowerCase()),
+      index,
+      used: false
+    }));
+  }
+
+  function scoreSenseAgainstTokens(sense, tokens) {
+    const keys = senseKeys(sense);
+    if (!keys.length) return { score: 0, hits: [] };
+    const hits = [];
+    keys.forEach(k => {
+      const tok = tokens.find(t => !t.used && (t.stem === k || t.lower === k));
+      if (tok) hits.push(tok);
+    });
+    if (!hits.length) return { score: 0, hits: [] };
+    // Prefer senses that cover more keys and waste fewer extras
+    const precision = hits.length / keys.length;
+    const score = hits.length * 2 + precision + (hits.length === keys.length ? 1 : 0);
+    return { score, hits };
+  }
+
+  function glossFromHits(sense, hits) {
+    if (!hits.length) return sense || '';
+    const words = hits
+      .sort((a, b) => a.index - b.index)
+      .map(t => t.lower);
+    const unique = [];
+    words.forEach(w => { if (!unique.includes(w)) unique.push(w); });
+    if (/^to\s+/i.test(sense) && unique.length === 1) return 'to ' + unique[0];
+    return unique.join(' ');
+  }
+
   function pickSense(senses, context) {
-    let best = { text: senses[0] || '', score: 0 };
+    // Kept for older call sites / own-meaning path that only has a Set of stems
+    const tokens = [...context].map((stemKey, index) => ({
+      raw: stemKey, lower: stemKey, stem: stemKey, index, used: false
+    }));
+    let best = { text: senses[0] || '', score: 0, hits: [] };
     senses.forEach(sense => {
-      const score = contentWords(sense).filter(w => context.has(w)).length;
-      if (score > best.score) best = { text: sense, score };
+      const got = scoreSenseAgainstTokens(sense, tokens);
+      if (got.score > best.score) best = { text: sense, score: got.score, hits: got.hits };
     });
     return best;
   }
 
-  // Prefer the wording that actually appears in the sentence translation
-  // (e.g. "miss" from "I miss you") when it matches a dictionary sense.
   function glossFromSentence(sense, englishText) {
     if (!sense || !englishText) return sense || '';
-    const engWords = (englishText.match(/[A-Za-z']+/g) || []);
-    const senseWords = contentWords(sense);
-    if (!senseWords.length) return sense;
-    const hits = [];
-    senseWords.forEach(sw => {
-      const found = engWords.find(ew => stem(ew.toLowerCase()) === sw);
-      if (found && !hits.some(h => h.toLowerCase() === found.toLowerCase())) hits.push(found);
+    const tokens = englishTokens(englishText);
+    const got = scoreSenseAgainstTokens(sense, tokens);
+    return got.hits.length ? glossFromHits(sense, got.hits) : sense;
+  }
+
+  // Greedy left-to-right: claim English words from the sentence for each Chinese word.
+  function meaningFromSentence(candidates, tokens) {
+    let best = { text: '', score: 0, hits: [] };
+    candidates.forEach(sense => {
+      if (!sense) return;
+      const got = scoreSenseAgainstTokens(sense, tokens);
+      if (got.score > best.score) best = { text: sense, score: got.score, hits: got.hits };
     });
-    if (!hits.length) return sense;
-    // Keep a leading "to " for verb-like CEDICT senses when the sentence only had the bare verb
-    if (/^to\s+/i.test(sense) && hits.length === 1 && !/^to\s+/i.test(hits[0])) {
-      return 'to ' + hits[0].toLowerCase();
-    }
-    return hits.join(' ');
+    if (best.score <= 0) return null;
+    best.hits.forEach(t => { t.used = true; });
+    return glossFromHits(best.text, best.hits);
   }
 
   // Turns segments into table rows with a meaning each. Compound words always
-  // stay together. The sense that fits the full-sentence translation wins, and
-  // the table shows that contextual meaning (not an unrelated default sense).
+  // stay together. Meanings are taken from the sentence translation whenever possible.
   async function wordsInContext(segs, englishText) {
     const dict = await loadCedict();
-    const context = new Set(contentWords(englishText));
+    const tokens = englishTokens(englishText || '');
+    const context = new Set(tokens.map(t => t.stem));
     const mine = getMine(STORAGE_MY_MEANINGS);
     const ask = segs.map(s => s.origin).filter(w => !(mine[w] && mine[w].en));
+    // Only ask Google for lone-word glosses when the sentence gave us nothing to align to
+    // OR as extra candidates — still required for words missing from CEDICT.
     const google = ask.length ? await translateWords(ask, 'en') : {};
+
     return segs.map(s => {
       const row = { char: s.origin, pinyin: s.result, es: '' };
-      if (mine[s.origin] && mine[s.origin].en) {
-        // Several meanings of yours ("to want; to miss"): show the one that fits, or all of them
-        const own = splitMeanings(mine[s.origin].en);
-        const fit = pickSense(own, context);
-        const chosen = fit.score > 0 ? fit.text : own.join('; ');
-        return { ...row, en: fit.score > 0 ? glossFromSentence(chosen, englishText) : chosen, mine: true };
-      }
       let g = (google[s.origin] || '').trim();
       if (g === s.origin || g === '[Translation error]') g = '';
       if (/^[A-Z][a-z]/.test(g)) g = g[0].toLowerCase() + g.slice(1);
+
+      if (mine[s.origin] && mine[s.origin].en) {
+        const own = splitMeanings(mine[s.origin].en);
+        const aligned = meaningFromSentence(own, tokens);
+        if (aligned) return { ...row, en: aligned, mine: true };
+        const fit = pickSense(own, context);
+        return {
+          ...row,
+          en: fit.score > 0 ? glossFromSentence(fit.text, englishText) : own.join('; '),
+          mine: true
+        };
+      }
+
       const senses = dict && dict.has(s.origin) ? dict.get(s.origin).split('|').filter(Boolean) : [];
-      const candidates = g ? [...senses, g] : senses.slice();
-      const pick = pickSense(candidates, context);
-      if (pick.score > 0) {
-        return { ...row, en: glossFromSentence(pick.text, englishText) };
+      const candidates = g ? senses.concat([g]) : senses.slice();
+      const aligned = meaningFromSentence(candidates, tokens);
+      if (aligned) return { ...row, en: aligned };
+
+      // Phrase match: sense text (without leading "to ") appears inside the English sentence
+      const engLower = (englishText || '').toLowerCase();
+      if (engLower) {
+        let phraseHit = '';
+        let phraseScore = 0;
+        candidates.forEach(sense => {
+          const bare = String(sense || '').replace(/^\s*to\s+/i, '').replace(/\([^)]*\)/g, '').trim().toLowerCase();
+          if (bare.length < 2) return;
+          if (engLower.includes(bare) && bare.length > phraseScore) {
+            phraseHit = /^to\s+/i.test(sense) ? 'to ' + bare : bare;
+            phraseScore = bare.length;
+          }
+        });
+        if (phraseHit) return { ...row, en: phraseHit };
       }
-      // Google's lone-word gloss only if it also shows up in the sentence translation
-      if (g) {
-        const gScore = contentWords(g).filter(w => context.has(w)).length;
-        if (gScore > 0) return { ...row, en: glossFromSentence(g, englishText) };
-      }
-      // Looser pass: any sense whose wording appears inside the English sentence
-      const loose = senses.find(sense => contentWords(sense).some(w => context.has(w)));
-      if (loose) return { ...row, en: glossFromSentence(loose, englishText) };
-      // Last resort: compounds prefer Google; single characters prefer the word list
+
+      // No foothold in the sentence: avoid a misleading default CEDICT sense when Google
+      // at least gave something; single characters still prefer the word list if Google is empty.
       const compound = Array.from(s.origin).length > 1;
-      return { ...row, en: (compound ? g || senses[0] : senses[0] || g) || '' };
+      return { ...row, en: (compound ? g || senses[0] : (g && context.size ? g : (senses[0] || g))) || '' };
     });
   }
 
