@@ -272,6 +272,9 @@
 
   // ---------- Translation (free Google endpoint) ----------
   // Fetch with a time limit so a stalled request on a phone never hangs the app.
+  // Phones (cellular / Safari PWA) often drop or stall the unofficial Google
+  // endpoint more than desktop Wi‑Fi, so we retry, try a second host, and
+  // fall back to translating sentence chunks.
   async function fetchWithTimeout(url, ms = 12000, opts = {}) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), ms);
@@ -282,17 +285,105 @@
     }
   }
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function parseGoogleTranslate(data) {
+    if (!data || !Array.isArray(data[0])) return '';
+    return data[0].map(part => part && part[0]).filter(Boolean).join('');
+  }
+
+  async function translateOnce(text, targetLang, timeoutMs) {
+    const q = encodeURIComponent(text);
+    const urls = [
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${q}`,
+      `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${q}`
+    ];
+    let lastErr = null;
+    for (const url of urls) {
+      try {
+        const res = await fetchWithTimeout(url, timeoutMs, {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const out = parseGoogleTranslate(await res.json());
+        if (!out) throw new Error('empty translation');
+        return out;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('translate failed');
+  }
+
+  // Keep punctuation with the sentence so chunks stay natural on phones.
+  function splitForTranslate(text) {
+    const raw = text.split(/([。！？；!?;]+|\n+)/);
+    const chunks = [];
+    let buf = '';
+    raw.forEach((part, i) => {
+      buf += part;
+      const isDelim = i % 2 === 1;
+      if ((isDelim || buf.length >= 100) && buf.trim()) {
+        chunks.push(buf);
+        buf = '';
+      }
+    });
+    if (buf.trim()) chunks.push(buf);
+    return chunks.length ? chunks : [text];
+  }
+
   async function translateText(text, targetLang) {
     if (!text || !text.trim()) return '';
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-    try {
-      const res = await fetchWithTimeout(url);
-      const data = await res.json();
-      return data[0].map(part => part[0]).join('');
-    } catch (err) {
-      console.error('Translation error:', err);
-      return '[Translation error]';
+    text = text.trim();
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await translateOnce(text, targetLang, 16000 + attempt * 5000);
+      } catch (err) {
+        console.warn('Translation attempt failed:', attempt + 1, err);
+        await sleep(280 + attempt * 420);
+      }
     }
+
+    // Long phrases on mobile often fail as one request — try sentence chunks.
+    let parts = splitForTranslate(text);
+    if (parts.length === 1 && text.length > 36) {
+      parts = [];
+      const chars = Array.from(text);
+      for (let i = 0; i < chars.length; i += 36) parts.push(chars.slice(i, i + 36).join(''));
+    }
+    if (parts.length > 1) {
+      try {
+        const pieces = [];
+        for (const part of parts) {
+          const bit = part.trim();
+          if (!bit) continue;
+          let done = null;
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              done = await translateOnce(bit, targetLang, 14000);
+              break;
+            } catch (err) {
+              console.warn('Chunk translation failed:', err);
+              await sleep(220);
+            }
+          }
+          if (done == null) return '[Translation error]';
+          pieces.push(done);
+        }
+        if (pieces.length) {
+          return /^zh/i.test(targetLang) ? pieces.join('') : pieces.join(' ').replace(/\s+/g, ' ').trim();
+        }
+      } catch (err) {
+        console.error('Chunked translation error:', err);
+      }
+    }
+
+    console.error('Translation error: all attempts failed');
+    return '[Translation error]';
   }
 
   // Translates a list of words with one request (one word per line).
@@ -312,7 +403,7 @@
     for (let i = 0; i < unique.length; i += 4) {
       const batch = unique.slice(i, i + 4);
       const res = await Promise.all(batch.map(w => translateText(w, targetLang)));
-      batch.forEach((w, j) => { out[w] = res[j]; });
+      batch.forEach((w, j) => { out[w] = res[j] && res[j] !== '[Translation error]' ? res[j] : ''; });
     }
     return out;
   }
@@ -325,7 +416,7 @@
   function loadCedict() {
     if (cedict) return Promise.resolve(cedict);
     if (!cedictLoading) {
-      cedictLoading = fetchWithTimeout('cedict.txt?v=30', 30000)
+      cedictLoading = fetchWithTimeout('cedict.txt?v=31', 30000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('cedict ' + res.status)))
         .then(txt => {
           const map = new Map();
@@ -371,7 +462,7 @@
   function loadPosLexicon() {
     if (posEn) return Promise.resolve(posEn);
     if (!posLoading) {
-      posLoading = fetchWithTimeout('pos-en.txt?v=30', 20000)
+      posLoading = fetchWithTimeout('pos-en.txt?v=31', 20000)
         .then(res => res.ok ? res.text() : Promise.reject(new Error('pos ' + res.status)))
         .then(txt => {
           const code = { a: 'adj', r: 'adv', v: 'verb' };
@@ -625,22 +716,32 @@
 
       if (chinese) {
         // Chinese → Pinyin + English
-        await loadCedict();
+        // On phones, wait for the ~4MB word list AND the sentence translation
+        // together — serial download+translate is a common cause of mobile failures.
+        const saved = myText(STORAGE_MY_SENTENCES, text);
+        const [, englishFull] = await Promise.all([
+          loadCedict(),
+          saved ? Promise.resolve(saved) : translateText(text, 'en')
+        ]);
         const segs = segmentAndPinyin(text);
         result.pinyinFull = segs.map(s => s.result).join(' ');
-        result.englishFull = myText(STORAGE_MY_SENTENCES, text) || await translateText(text, 'en');
-        result.words = await wordsInContext(segs, result.englishFull);
+        result.englishFull = englishFull;
+        // If the sentence failed, don't feed "[Translation error]" into sense-picking
+        const contextEn = englishFull === '[Translation error]' ? '' : englishFull;
+        result.words = await wordsInContext(segs, contextEn);
       } else {
         // English / Spanish → Chinese + Pinyin
+        // Start the word list while the sentence is translating.
+        const cedictPromise = loadCedict();
         const chineseText = await translateText(text, 'zh-CN');
         result.chineseFull = chineseText;
         result.englishFull = text; // keep original for reference
-
-        await loadCedict();
-        const segs = segmentAndPinyin(chineseText);
-        result.pinyinFull = segs.map(s => s.result).join(' ');
-
-        result.words = await wordsInContext(segs, text);
+        await cedictPromise;
+        if (chineseText !== '[Translation error]') {
+          const segs = segmentAndPinyin(chineseText);
+          result.pinyinFull = segs.map(s => s.result).join(' ');
+          result.words = await wordsInContext(segs, text);
+        }
       }
 
       currentResult = result;
